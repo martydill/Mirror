@@ -38,5 +38,21 @@ namespace Mirror.Tests
             Assert.AreEqual("123b", test.It.GetString(123, "b"));
             Assert.AreEqual("456a", test.It.GetString(456, "a"));
         }
+
+        [Test]
+        public void TestMethodParameterMethodArranging()
+        {
+            var test = new Mirror<ITest>();
+
+            test.Arrange(s => s.GetInt(IntReturner())).Returns(999);
+
+            Assert.AreEqual(999, test.It.GetInt(IntReturner()));
+        }
+
+  
+        private int IntReturner()
+        {
+            return 12345;
+        }
     }
 }

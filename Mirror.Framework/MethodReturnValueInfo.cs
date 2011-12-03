@@ -44,7 +44,19 @@ namespace Mirror.Framework
                 bool doParametersMatch = true;
                 for (int i = 0; i < inParameterValues.Count(); ++i)
                 {
-                    if (!Object.Equals(inParameterValues[i], parameterInfo.ParameterValues[i]))
+                    object result = parameterInfo.ParameterValues[i];
+
+                    // If the result is an expression, evaluate it first
+                    if (result is Expression)
+                    {
+                        var lambda = Expression.Lambda(parameterInfo.ParameterValues[i] as Expression);
+                        var func = lambda.Compile();
+                        result = func.DynamicInvoke();
+
+                    }
+
+                    // Then, check if it matches the given parameters
+                    if (!Object.Equals(inParameterValues[i], result))
                     {
                         doParametersMatch = false;
                         break;
@@ -53,7 +65,10 @@ namespace Mirror.Framework
 
                 if (doParametersMatch)
                 {
-                    returnValue = parameterInfo.ReturnValue;
+     
+                        returnValue = parameterInfo.ReturnValue;
+
+
                     if (parameterInfo.MethodToCall != null)
                     {
                         parameterInfo.MethodToCall.DynamicInvoke(new object[]{});

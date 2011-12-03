@@ -77,7 +77,7 @@ namespace Mirror.Framework
                 }
                 else
                 {
-                    throw new InvalidOperationException();
+                    parameterArray[i] = parameterExpression;
                 }
             }
 
