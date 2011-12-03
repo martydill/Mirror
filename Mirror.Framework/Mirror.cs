@@ -1,12 +1,11 @@
 using System;
 using System.Linq.Expressions;
-using System.Collections.Generic;
-using System.Linq;
 
 namespace Mirror.Framework
 {
     public class Mirror<TMirroredType> where TMirroredType : class
     {
+        private TMirroredType _proxyImpl;
         private readonly MirrorProxy _proxy;
 
         public Mirror()
@@ -90,9 +89,11 @@ namespace Mirror.Framework
         {
             get
             {
-                return _proxy.GetTransparentProxy() as TMirroredType;
+                if(_proxyImpl == null)
+                    _proxyImpl = (TMirroredType)_proxy.GetTransparentProxy();
+
+                return _proxyImpl;
             }
         }
-
     }
 }
