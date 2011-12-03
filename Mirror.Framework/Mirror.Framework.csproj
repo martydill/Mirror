@@ -63,6 +63,7 @@
     <Compile Include="MethodArrange.cs" />
     <Compile Include="MethodReturnValueInfo.cs" />
     <Compile Include="Mirror.cs" />
+    <Compile Include="MirrorCreationException.cs" />
     <Compile Include="MirrorProxy.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>

@@ -12,6 +12,9 @@ namespace Mirror.Framework
         public Mirror()
         {
             var type = typeof(TMirroredType);
+            if (!type.IsInterface && !type.IsSubclassOf(typeof(MarshalByRefObject)))
+                throw new MirrorCreationException(String.Format("Type {0} is not an interface or a MarshalByRefObject and cannot be mocked", type.FullName));
+
             _proxy = new MirrorProxy(type);
         }
 

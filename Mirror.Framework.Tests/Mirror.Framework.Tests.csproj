@@ -44,6 +44,7 @@
     <Compile Include="MethodActionTest.cs" />
     <Compile Include="MethodWithSpecificParametersTest.cs" />
     <Compile Include="MethodReturnValueTest.cs" />
+    <Compile Include="NonMockableMethodTest.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
   <ItemGroup>
