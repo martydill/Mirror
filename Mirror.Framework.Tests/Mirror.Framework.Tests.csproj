@@ -41,6 +41,7 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="MethodThrowsTest.cs" />
     <Compile Include="MethodActionTest.cs" />
     <Compile Include="MethodWithSpecificParametersTest.cs" />
     <Compile Include="MethodReturnValueTest.cs" />

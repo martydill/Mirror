@@ -12,6 +12,8 @@ namespace Mirror.Framework
     {
         internal class ParameterInfo
         {
+            public Exception ExceptionToThrow { get; set; }
+
             internal object ReturnValue { get; set; }
 
             internal Action MethodToCall { get; set; }
@@ -23,12 +25,12 @@ namespace Mirror.Framework
         private List<ParameterInfo> _parameterValues = new List<ParameterInfo>();
 
 
-        public MethodReturnValueInfo()
+        internal MethodReturnValueInfo()
         {
         }
 
 
-        public void AddReturnValue(object returnValue, object[] parameterValues)
+        internal void AddReturnValue(object returnValue, object[] parameterValues)
         {
             _parameterValues.Add(new ParameterInfo() { ReturnValue = returnValue, ParameterValues = parameterValues });
         }
@@ -65,11 +67,13 @@ namespace Mirror.Framework
 
                 if (doParametersMatch)
                 {
-     
-                        returnValue = parameterInfo.ReturnValue;
+                    returnValue = parameterInfo.ReturnValue;
 
-
-                    if (parameterInfo.MethodToCall != null)
+                    if (parameterInfo.ExceptionToThrow != null)
+                    {
+                        throw parameterInfo.ExceptionToThrow;
+                    }
+                    else if (parameterInfo.MethodToCall != null)
                     {
                         parameterInfo.MethodToCall.DynamicInvoke(new object[]{});
                     }
@@ -83,6 +87,11 @@ namespace Mirror.Framework
         internal void AddMethodExecution(Action methodToCall, object[] parameterValues)
         {
             _parameterValues.Add(new ParameterInfo() { MethodToCall = methodToCall, ParameterValues = parameterValues });
+        }
+
+        internal void AddMethodException(Exception exception, object[] ParameterValues)
+        {
+            _parameterValues.Add(new ParameterInfo() { ExceptionToThrow = exception, ParameterValues = ParameterValues });
         }
     }
 }

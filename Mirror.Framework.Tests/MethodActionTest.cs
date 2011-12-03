@@ -12,7 +12,7 @@ namespace Mirror.Tests
         }
 
         [Test]
-        public void TestMethodCallWithAction()
+        public void TestMethodArrangeWithCalls()
         {
             var test = new Mirror<ITest>();
             int counter = 0;

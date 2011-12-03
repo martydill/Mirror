@@ -22,5 +22,13 @@ namespace Mirror.Framework
         {
             MethodReturnValueInfo.AddMethodExecution(methodToCall, ParameterValues);
         }
+
+        public void Throws(Exception exception)
+        {
+            if (exception == null)
+                throw new MirrorArrangeException("Cannot arrange to throw a null Exception");
+
+            MethodReturnValueInfo.AddMethodException(exception, ParameterValues);
+        }
     }
 }
