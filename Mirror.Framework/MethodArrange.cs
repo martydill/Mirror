@@ -7,7 +7,7 @@ namespace Mirror.Framework
 {
     public class MethodArrange<T> where T : class
     {
-        public MethodReturnValueInfo MethodReturnValueInfo { get; set; }
+        public MethodCallInfo MethodReturnValueInfo { get; set; }
 
         public object[] ParameterValues { get; set; }
 

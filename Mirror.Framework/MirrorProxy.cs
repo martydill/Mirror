@@ -7,7 +7,7 @@ namespace Mirror.Framework
 {
     internal sealed class MirrorProxy : RealProxy
     {
-        public Dictionary<object, MethodReturnValueInfo> _returnValues = new Dictionary<object, MethodReturnValueInfo>();
+        public Dictionary<object, MethodCallInfo> _returnValues = new Dictionary<object, MethodCallInfo>();
 
         public MirrorProxy(Type classToProxy)
             : base(classToProxy)
@@ -23,10 +23,11 @@ namespace Mirror.Framework
                 var methodCallMessageWrapper = new MethodCallMessageWrapper(methodCallMessage);
 
                 object returnValue = null;
-                MethodReturnValueInfo returnValueInfo = null;
-                if (ReturnValues.TryGetValue(methodCallMessageWrapper.MethodBase, out returnValueInfo))
+                MethodCallInfo methodCallInfo = null;
+                if (MethodCallInfoCollection.TryGetValue(methodCallMessageWrapper.MethodBase, out methodCallInfo))
                 {
-                    returnValue = returnValueInfo.CalculateReturnValue(methodCallMessage.InArgs);
+                    methodCallInfo.LogMethodCall(methodCallMessage.InArgs);
+                    returnValue = methodCallInfo.CalculateReturnValue(methodCallMessage.InArgs);
                 }
                 else
                 { 
@@ -52,7 +53,7 @@ namespace Mirror.Framework
             return returnValue;
         }
 
-        public Dictionary<object, MethodReturnValueInfo> ReturnValues
+        public Dictionary<object, MethodCallInfo> MethodCallInfoCollection
         {
             get
             {

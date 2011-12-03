@@ -23,7 +23,12 @@ namespace Mirror.Framework
         /// </summary>
         public int Count(Expression<Action<TMirroredType>> inputFunc)
         {
-            return 0;
+            var methodCallExpression = inputFunc.Body as MethodCallExpression;
+            var method = methodCallExpression.Method;
+            var parameters = methodCallExpression.Arguments;
+
+            MethodCallInfo methodCallInfo = GetMethodReturnValueInfo(method);
+            return methodCallInfo.CallCount(parameters);
         }
 
         public MethodArrange<TMirroredType> Arrange(Expression<Action<TMirroredType>> inputFunc)
@@ -34,14 +39,21 @@ namespace Mirror.Framework
 
             object[] parameterValues = GetParameterValues(parameters);
 
-            MethodReturnValueInfo newMethodReturnValueInfo = null;
-            if (!_proxy.ReturnValues.TryGetValue(method, out newMethodReturnValueInfo))
-            {
-                newMethodReturnValueInfo = new MethodReturnValueInfo();
-                _proxy.ReturnValues.Add(method, newMethodReturnValueInfo);
-            }
+            MethodCallInfo newMethodReturnValueInfo = GetMethodReturnValueInfo(method);
 
             return new MethodArrange<TMirroredType>() { MethodReturnValueInfo = newMethodReturnValueInfo, ParameterValues = parameterValues };
+        }
+
+
+        private MethodCallInfo GetMethodReturnValueInfo(System.Reflection.MethodInfo method)
+        {
+            MethodCallInfo newMethodReturnValueInfo = null;
+            if (!_proxy.MethodCallInfoCollection.TryGetValue(method, out newMethodReturnValueInfo))
+            {
+                newMethodReturnValueInfo = new MethodCallInfo();
+                _proxy.MethodCallInfoCollection.Add(method, newMethodReturnValueInfo);
+            }
+            return newMethodReturnValueInfo;
         }
 
         /// <summary>
@@ -58,14 +70,8 @@ namespace Mirror.Framework
 
             object[] parameterValues = GetParameterValues(parameters);
 
-            MethodReturnValueInfo newMethodReturnValueInfo = null;
-            if(!_proxy.ReturnValues.TryGetValue(method, out newMethodReturnValueInfo))
-            {
-                newMethodReturnValueInfo = new MethodReturnValueInfo();
-                _proxy.ReturnValues.Add(method, newMethodReturnValueInfo);
-            }
-          
-            _proxy.ReturnValues[method] = newMethodReturnValueInfo;
+            MethodCallInfo newMethodReturnValueInfo = GetMethodReturnValueInfo(method);
+            _proxy.MethodCallInfoCollection[method] = newMethodReturnValueInfo;
 
             return new MethodArrange<TMirroredType>() { MethodReturnValueInfo = newMethodReturnValueInfo, ParameterValues = parameterValues };
         }
