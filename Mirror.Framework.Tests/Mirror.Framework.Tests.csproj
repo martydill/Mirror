@@ -41,10 +41,10 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="MethodCountTest.cs" />
     <Compile Include="MethodThrowsTest.cs" />
     <Compile Include="MethodActionTest.cs" />
-    <Compile Include="MethodWithSpecificParametersTest.cs" />
-    <Compile Include="MethodReturnValueTest.cs" />
+    <Compile Include="ArrangeTest.cs" />
     <Compile Include="MirrorTest.cs" />
     <Compile Include="NonMockableMethodTest.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />

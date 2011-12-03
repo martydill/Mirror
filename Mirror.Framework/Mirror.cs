@@ -18,6 +18,14 @@ namespace Mirror.Framework
         }
 
 
+        /// <summary>
+        /// Returns the number of times the given method was called with the given parameters
+        /// </summary>
+        public int Count(Expression<Action<TMirroredType>> inputFunc)
+        {
+            return 0;
+        }
+
         public MethodArrange<TMirroredType> Arrange(Expression<Action<TMirroredType>> inputFunc)
         {
             var methodCallExpression = inputFunc.Body as MethodCallExpression;

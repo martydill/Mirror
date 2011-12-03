@@ -22,15 +22,34 @@ namespace Mirror.Framework
                 var methodCallMessage = msg as IMethodCallMessage;
                 var methodCallMessageWrapper = new MethodCallMessageWrapper(methodCallMessage);
 
-                var returnValueInfo = ReturnValues[methodCallMessageWrapper.MethodBase];
-
-                var returnValue = returnValueInfo.CalculateReturnValue(methodCallMessage.InArgs);
+                object returnValue = null;
+                MethodReturnValueInfo returnValueInfo = null;
+                if (ReturnValues.TryGetValue(methodCallMessageWrapper.MethodBase, out returnValueInfo))
+                {
+                    returnValue = returnValueInfo.CalculateReturnValue(methodCallMessage.InArgs);
+                }
+                else
+                { 
+                    // If this method has not been arranged, return a default value
+                    returnValue = CalculateDefaultReturnValue(methodCallMessageWrapper);
+                }
 
                 var returnMessage = new ReturnMessage(returnValue, null, 0, methodCallMessageWrapper.LogicalCallContext, methodCallMessage);
                 return returnMessage;
             }
 
             return null;
+        }
+
+        private object CalculateDefaultReturnValue(MethodCallMessageWrapper methodCallMessage)
+        {
+            var returnType = methodCallMessage.MethodSignature as Type[];
+
+            Object returnValue = null;
+            if(returnType.Length > 0)
+                returnValue = Activator.CreateInstance(returnType[0]);
+
+            return returnValue;
         }
 
         public Dictionary<object, MethodReturnValueInfo> ReturnValues

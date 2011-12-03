@@ -4,14 +4,56 @@ using Mirror.Framework;
 namespace Mirror.Tests
 {
     [TestFixture]
-    public class MethodWithSpecificParameters
+    public class ArrangeTest
     {
         interface ITest
         {
+            void DoStuff();
+
+            int GetInt();
+
+            string GetString();
+
             int GetInt(int value);
 
             string GetString(int p1, string p2);
         }
+
+        [Test]
+        public void TestCallNonArrangedMethodDoesNothing()
+        {
+            var test = new Mirror<ITest>();
+            test.It.DoStuff();
+        }
+
+        [Test]
+        public void TestCallNonArrangedMethodWithReturnValueReturnsDefault()
+        {
+            var test = new Mirror<ITest>();
+            Assert.AreEqual(0, test.It.GetInt(3));
+        }
+
+        [Test]
+        public void TestParameterlessIntMethodCall()
+        {
+            var test = new Mirror<ITest>();
+
+            test.Arrange(s => s.GetInt()).Returns(987);
+
+            Assert.AreEqual(987, test.It.GetInt());
+        }
+
+
+        [Test]
+        public void TestParameterlessStringMethodCall()
+        {
+            var test = new Mirror<ITest>();
+
+            test.Arrange(s => s.GetString()).Returns("234");
+
+            Assert.AreEqual("234", test.It.GetString());
+        }
+
 
         [Test]
         public void TestOneParameterMethodArranging()
