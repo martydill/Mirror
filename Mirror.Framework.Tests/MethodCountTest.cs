@@ -6,10 +6,15 @@ namespace Mirror.Tests
     [TestFixture]
     class MethodCountTest
     {
+        class test
+        {
+        }
+
         interface ITest
         {
             void DoStuff();
             void DoStuff(int i);
+            void DoStuff(test t, string s);
         }
 
 
@@ -37,5 +42,24 @@ namespace Mirror.Tests
 
             Assert.AreEqual(2, mock.Count(s => s.DoStuff(1)));
         }
+
+
+        [Test]
+        public void TestCountReturnsCorrectValuesForMultiParameterMethod()
+        {
+            var t = new test();
+            var mock = new Mirror<ITest>();
+            mock.Arrange(m => m.DoStuff(t, "a"));
+            mock.It.DoStuff(t, "a");
+            mock.It.DoStuff(t, "b");
+            mock.It.DoStuff(null, "a");
+            mock.It.DoStuff(t, "a");
+            mock.It.DoStuff(null, "a");
+
+            Assert.AreEqual(2, mock.Count(s => s.DoStuff(t, "a")));
+            Assert.AreEqual(1, mock.Count(s => s.DoStuff(t, "b")));
+            Assert.AreEqual(2, mock.Count(s => s.DoStuff(null, "a")));
+        }
+
     }
 }
