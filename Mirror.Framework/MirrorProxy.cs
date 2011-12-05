@@ -1,3 +1,5 @@
+// The subclass of RealProxy that handles method calls
+
 using System;
 using System.Collections.Generic;
 using System.Runtime.Remoting.Messaging;
@@ -7,7 +9,7 @@ namespace Mirror.Framework
 {
     internal sealed class MirrorProxy : RealProxy
     {
-        public Dictionary<object, MethodCallInfo> _returnValues = new Dictionary<object, MethodCallInfo>();
+        public readonly Dictionary<object, MethodCallInfo> _returnValues = new Dictionary<object, MethodCallInfo>();
 
         public MirrorProxy(Type classToProxy)
             : base(classToProxy)
@@ -26,14 +28,19 @@ namespace Mirror.Framework
                 MethodCallInfo methodCallInfo = null;
                 if (MethodCallInfoCollection.TryGetValue(methodCallMessageWrapper.MethodBase, out methodCallInfo))
                 {
-                    methodCallInfo.LogMethodCall(methodCallMessage.InArgs);
+                    // Method call has been arranged. Figure out the desired return value.
                     returnValue = methodCallInfo.CalculateReturnValue(methodCallMessage.InArgs);
                 }
                 else
                 { 
-                    // If this method has not been arranged, return a default value
+                    // Method call has not been arranged. Add an arrangement for it (for logging purposes)
+                    // and return a default value
+                    methodCallInfo = new MethodCallInfo();
+                    MethodCallInfoCollection.Add(methodCallMessageWrapper.MethodBase, methodCallInfo);
                     returnValue = CalculateDefaultReturnValue(methodCallMessageWrapper);
                 }
+
+                methodCallInfo.LogMethodCall(methodCallMessage.InArgs);
 
                 var returnMessage = new ReturnMessage(returnValue, null, 0, methodCallMessageWrapper.LogicalCallContext, methodCallMessage);
                 return returnMessage;
