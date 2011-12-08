@@ -45,7 +45,7 @@
     <Compile Include="MethodCountTest.cs" />
     <Compile Include="MirrorThrowsTest.cs" />
     <Compile Include="MirrorCallsTest.cs" />
-    <Compile Include="MethodArrangeTest.cs" />
+    <Compile Include="MirrorReturnsTest.cs" />
     <Compile Include="MirrorTest.cs" />
     <Compile Include="NonMockableMethodTest.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />

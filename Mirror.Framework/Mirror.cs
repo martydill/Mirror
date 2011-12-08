@@ -33,7 +33,7 @@ namespace Mirror.Framework
             return methodCallInfo.CallCount(parameters);
         }
 
-        private ArrangeResult<TMirroredType> Arrange(Expression<Action<TMirroredType>> inputFunc)
+        private void Arrange(Expression<Action<TMirroredType>> inputFunc)
         {
             var methodCallExpression = inputFunc.Body as MethodCallExpression;
             var method = methodCallExpression.Method;
@@ -43,7 +43,7 @@ namespace Mirror.Framework
 
             MethodCallInfo newMethodReturnValueInfo = GetMethodCallInfo(method);
 
-            return new MethodArrangeResult<TMirroredType>() { MethodReturnValueInfo = newMethodReturnValueInfo, ParameterValues = parameterValues };
+            //return new MethodArrangeResult<TMirroredType>() { MethodReturnValueInfo = newMethodReturnValueInfo, ParameterValues = parameterValues };
         }
 
 
@@ -71,51 +71,89 @@ namespace Mirror.Framework
         }
 
 
-        public ArrangeResult<TMirroredType> Returns<TReturnType>(Expression<Func<TMirroredType, TReturnType>> inputFunc, TReturnType returnValue )
+        /// <summary>
+        /// Configures the mirror to return the specified value for the specified method or property call
+        /// </summary>
+        public void Returns<TReturnType>(Expression<Func<TMirroredType, TReturnType>> inputFunc, TReturnType returnValue )
         {
             if (inputFunc.Body is MethodCallExpression)
-                return HandleMethodArrange((MethodCallExpression)inputFunc.Body);
+            {
+               var methodCallInfo = HandleMethodArrange((MethodCallExpression)inputFunc.Body);
+               var parameterValues = GetMethodParameters((MethodCallExpression)inputFunc.Body);
+               methodCallInfo.AddReturnValue(returnValue, parameterValues);
+            }
             else if (inputFunc.Body is MemberExpression)
-                return HandleMemberArrange((MemberExpression)inputFunc.Body);
+                HandleMemberArrange((MemberExpression)inputFunc.Body, returnValue);
             else
                 throw new MirrorArrangeException("Unsupported expression type " + inputFunc.Body.GetType().Name);
         }
 
 
-        public ArrangeResult<TMirroredType> Calls(Expression<Action<TMirroredType>> inputFunc, Action methodToCall)
+        public void Calls(Expression<Action<TMirroredType>> inputFunc, Action methodToCall)
         {
-            return null;
+            if (methodToCall == null)
+                throw new MirrorArrangeException("methodToCall cannot be null");
+
+            if (inputFunc.Body is MethodCallExpression)
+            {
+                var methodCallInfo = HandleMethodArrange((MethodCallExpression)inputFunc.Body);
+                var parameterValues = GetMethodParameters((MethodCallExpression)inputFunc.Body);
+                methodCallInfo.AddMethodExecution(methodToCall, parameterValues);
+            }
+            else
+                throw new MirrorArrangeException("Unsupported expression type " + inputFunc.Body.GetType().Name);
         }
 
 
-        public ArrangeResult<TMirroredType> Throws(Expression<Action<TMirroredType>> inputFunc, Exception exceptionToThrow)
+        /// <summary>
+        /// Throws the specified exception when the specified method is called with the specified parameters
+        /// </summary>
+        /// <param name="inputFunc">The function to be called</param>
+        /// <param name="exceptionToThrow">The exception to be thrown</param>
+        public void Throws(Expression<Action<TMirroredType>> inputFunc, Exception exceptionToThrow)
         {
-            return null;
+            if (exceptionToThrow == null)
+                throw new MirrorArrangeException("exceptionToThrow cannot be null");
+
+            if (inputFunc.Body is MethodCallExpression)
+            {
+                var methodCallInfo = HandleMethodArrange((MethodCallExpression)inputFunc.Body);
+                var parameterValues = GetMethodParameters((MethodCallExpression)inputFunc.Body);
+                methodCallInfo.AddMethodException(exceptionToThrow, parameterValues);
+            }
+            else
+                throw new MirrorArrangeException("Unsupported expression type " + inputFunc.Body.GetType().Name);
         }
 
 
-        private ArrangeResult<TMirroredType> HandleMethodArrange(MethodCallExpression methodCallExpression)
+        private MethodCallInfo HandleMethodArrange(MethodCallExpression methodCallExpression)
         {
             var method = methodCallExpression.Method;
-            var parameters = methodCallExpression.Arguments;
-
-            object[] parameterValues = GetParameterValues(parameters);
 
             MethodCallInfo methodCallInfo = GetMethodCallInfo(method);
             _proxy.MethodCallInfoCollection[method] = methodCallInfo;
+            return methodCallInfo;
+           
+            //var  new MethodArrangeResult<TMirroredType>() { MethodReturnVa//ueInfo = methodCallInfo, ParameterValues = parameterValues };
+        }
 
-            return new MethodArrangeResult<TMirroredType>() { MethodReturnValueInfo = methodCallInfo, ParameterValues = parameterValues };
+        private object[] GetMethodParameters(MethodCallExpression methodCallExpression)
+        {
+            var parameters = methodCallExpression.Arguments;
+
+            object[] parameterValues = GetParameterValues(parameters);
+            return parameterValues;
         }
 
 
-        private ArrangeResult<TMirroredType> HandleMemberArrange(MemberExpression memberExpression)
+        private void HandleMemberArrange(MemberExpression memberExpression, object returnValue)
         {
             var property = memberExpression.Member;
             //var value = GetParameterValues(new Expression[]{memberExpression})[0];
 
             PropertyCallInfo propertyCallInfo = GetPropertyCallInfo(property);
             _proxy.PropertyInfoCollection[property] = propertyCallInfo;
-            return new MemberArrangeResult<TMirroredType>() { };
+            //return new MemberArrangeResult<TMirroredType>() { };
         }
 
 
@@ -140,6 +178,10 @@ namespace Mirror.Framework
             return parameterArray;
         }
 
+
+        /// <summary>
+        /// Returns the object of type TMirroredType that this mirror represents
+        /// </summary>
         public TMirroredType It
         {
             get

@@ -3,7 +3,7 @@ using System;
 namespace Mirror.Framework
 {
     /// <summary>
-    /// Exception that gets thrown when a call to Arrange() fails
+    /// Exception that gets thrown when a call to Returns, Throws, or Calls fails
     /// </summary>
     public class MirrorArrangeException : Exception
     {

@@ -11,8 +11,17 @@ namespace Mirror.Tests
             void DoStuff();
         }
 
+
         [Test]
-        public void TestMethodArrangeWithCalls()
+        public void TestCallsWithNullLambdaThrowsException()
+        {
+            var test = new Mirror<ITest>();
+            Assert.Throws<MirrorArrangeException>(() => test.Calls(s => s.DoStuff(), null));
+        }
+
+
+        [Test]
+        public void TestCallsWithValidLambdaCallsLambda()
         {
             var test = new Mirror<ITest>();
             int counter = 0;

@@ -13,7 +13,7 @@ namespace Mirror.Tests
         }
 
         [Test]
-        public void TestMethodArrangeWithThrowsThrowsExceptionIfParameterIsNull()
+        public void TestThrowsThrowsExceptionIfExceptionIsNull()
         {
             var test = new Mirror<ITest>();
             Assert.Throws<MirrorArrangeException>(() => test.Throws(s => s.DoStuff(), null));

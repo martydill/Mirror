@@ -61,7 +61,6 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="MirrorArrangeException.cs" />
-    <Compile Include="MethodArrange.cs" />
     <Compile Include="MethodReturnValueInfo.cs" />
     <Compile Include="Mirror.cs" />
     <Compile Include="MirrorCreationException.cs" />

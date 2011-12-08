@@ -32,6 +32,7 @@ namespace Mirror.Framework
         internal object CalculateReturnValue(object[] methodArguments)
         {
             object returnValue = null;
+
             foreach (var parameterInfo in _parameterValues)
             {
                 if (methodArguments.Count() != parameterInfo.ParameterValues.Count())
