@@ -18,17 +18,18 @@ namespace Mirror.Framework
 
         }
 
-        public object get(MethodInfo method)
+        /// <summary>
+        /// The collection of method/property mock info for this proxy
+        /// </summary>
+        public Dictionary<object, MemberCallInfo> MemberCallInfoCollection
         {
-            if (method.IsSpecialName && method.Name.StartsWith("set_")|| method.Name.StartsWith("get_"))
+            get
             {
-                var prop = method.DeclaringType.GetProperty(method.Name.Substring(4),
-                       BindingFlags.NonPublic | BindingFlags.Public | BindingFlags.Instance);
-                return prop;
+                return _methodCallInfoCollection;
             }
-            return null;
-
         }
+
+
         public override IMessage Invoke(IMessage msg)
         {
             if (msg is IMethodCallMessage)
@@ -36,17 +37,14 @@ namespace Mirror.Framework
                 var methodCallMessage = msg as IMethodCallMessage;
                 var methodCallMessageWrapper = new MethodCallMessageWrapper(methodCallMessage);
 
-               
-
-
                 object returnValue = null;
                 MemberCallInfo methodCallInfo = null;
-                object key = methodCallMessageWrapper.MethodBase;
 
-                var property = get(methodCallMessageWrapper.MethodBase as MethodInfo);
-                if (property != null)
-                    key = property;
-
+                // First, try to find the PropertyInfo for this method (because it might be a backing
+                // method for a property). If that fails, just use the method from the message.
+                object key = GetPropertyInfoFromMethodInfo(methodCallMessageWrapper.MethodBase as MethodInfo);
+                if (key == null)
+                    key = methodCallMessageWrapper.MethodBase;
 
                 if (MemberCallInfoCollection.TryGetValue(key, out methodCallInfo))
                 {
@@ -71,6 +69,23 @@ namespace Mirror.Framework
             return null;
         }
 
+        /// <summary>
+        /// From http://stackoverflow.com/a/7819571/184630
+        /// </summary>
+        private PropertyInfo GetPropertyInfoFromMethodInfo(MethodInfo method)
+        {
+            if (method.IsSpecialName && method.Name.StartsWith("set_") || method.Name.StartsWith("get_"))
+            {
+                var prop = method.DeclaringType.GetProperty(method.Name.Substring(4), BindingFlags.NonPublic | BindingFlags.Public | BindingFlags.Instance);
+                return prop;
+            }
+            return null;
+        }
+
+
+        /// <summary>
+        /// Calculates and returns the default return value for the given message
+        /// </summary>
         private object CalculateDefaultReturnValue(MethodCallMessageWrapper methodCallMessage)
         {
             var returnType = methodCallMessage.MethodSignature as Type[];
@@ -80,14 +95,6 @@ namespace Mirror.Framework
                 returnValue = Activator.CreateInstance(returnType[0]);
 
             return returnValue;
-        }
-
-        public Dictionary<object, MemberCallInfo> MemberCallInfoCollection
-        {
-            get
-            {
-                return _methodCallInfoCollection;
-            }
         }
     }
 }
