@@ -131,6 +131,9 @@ namespace Mirror.Framework
     /// </summary>
     internal class MethodCallCountInstance
     {
-        public object[] Parameters;
+        /// <summary>
+        /// The list of parameters that the method was called with
+        /// </summary>
+        public object[] Parameters { get; set; }
     }
 }
