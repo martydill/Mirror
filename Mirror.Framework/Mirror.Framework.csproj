@@ -67,6 +67,7 @@
     <Compile Include="MirrorCreationException.cs" />
     <Compile Include="MirrorProxy.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
+    <Compile Include="PropertyCallInfo.cs" />
   </ItemGroup>
   <ItemGroup>
     <None Include="app.config" />

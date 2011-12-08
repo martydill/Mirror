@@ -9,7 +9,9 @@ namespace Mirror.Framework
 {
     internal sealed class MirrorProxy : RealProxy
     {
-        public readonly Dictionary<object, MethodCallInfo> _returnValues = new Dictionary<object, MethodCallInfo>();
+        private readonly Dictionary<object, MethodCallInfo> _methodCallInfoCollection = new Dictionary<object, MethodCallInfo>();
+
+        private readonly Dictionary<object, PropertyCallInfo> _propertyInfoCollection = new Dictionary<object, PropertyCallInfo>();
 
         public MirrorProxy(Type classToProxy)
             : base(classToProxy)
@@ -64,7 +66,15 @@ namespace Mirror.Framework
         {
             get
             {
-                return _returnValues;
+                return _methodCallInfoCollection;
+            }
+        }
+
+        public Dictionary<object, PropertyCallInfo> PropertyInfoCollection
+        {
+            get
+            {
+                return _propertyInfoCollection;
             }
         }
     }

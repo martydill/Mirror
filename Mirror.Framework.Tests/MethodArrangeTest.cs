@@ -4,7 +4,7 @@ using Mirror.Framework;
 namespace Mirror.Tests
 {
     [TestFixture]
-    public class ArrangeTest
+    public class MethodArrangeTest
     {
         interface ITest
         {

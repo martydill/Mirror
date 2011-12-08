@@ -1,5 +1,7 @@
 using System;
+using System.Linq;  
 using System.Linq.Expressions;
+using System.Collections.Generic;
 
 namespace Mirror.Framework
 {
@@ -27,11 +29,11 @@ namespace Mirror.Framework
             var method = methodCallExpression.Method;
             var parameters = methodCallExpression.Arguments;
 
-            MethodCallInfo methodCallInfo = GetMethodReturnValueInfo(method);
+            MethodCallInfo methodCallInfo = GetMethodCallInfo(method);
             return methodCallInfo.CallCount(parameters);
         }
 
-        public MethodArrange<TMirroredType> Arrange(Expression<Action<TMirroredType>> inputFunc)
+        public ArrangeResult<TMirroredType> Arrange(Expression<Action<TMirroredType>> inputFunc)
         {
             var methodCallExpression = inputFunc.Body as MethodCallExpression;
             var method = methodCallExpression.Method;
@@ -39,13 +41,13 @@ namespace Mirror.Framework
 
             object[] parameterValues = GetParameterValues(parameters);
 
-            MethodCallInfo newMethodReturnValueInfo = GetMethodReturnValueInfo(method);
+            MethodCallInfo newMethodReturnValueInfo = GetMethodCallInfo(method);
 
-            return new MethodArrange<TMirroredType>() { MethodReturnValueInfo = newMethodReturnValueInfo, ParameterValues = parameterValues };
+            return new MethodArrangeResult<TMirroredType>() { MethodReturnValueInfo = newMethodReturnValueInfo, ParameterValues = parameterValues };
         }
 
 
-        private MethodCallInfo GetMethodReturnValueInfo(System.Reflection.MethodInfo method)
+        private MethodCallInfo GetMethodCallInfo(System.Reflection.MethodInfo method)
         {
             MethodCallInfo newMethodReturnValueInfo = null;
             if (!_proxy.MethodCallInfoCollection.TryGetValue(method, out newMethodReturnValueInfo))
@@ -56,34 +58,65 @@ namespace Mirror.Framework
             return newMethodReturnValueInfo;
         }
 
+
+        private PropertyCallInfo GetPropertyCallInfo(System.Reflection.MemberInfo property)
+        {
+            PropertyCallInfo propertyCallInfo = null;
+            if (!_proxy.PropertyInfoCollection.TryGetValue(property, out propertyCallInfo))
+            {
+                propertyCallInfo = new PropertyCallInfo();
+                _proxy.PropertyInfoCollection.Add(property, propertyCallInfo);
+            }
+            return propertyCallInfo;
+        }
+
+
         /// <summary>
         /// Sets up the given return value or action for the given function
         /// </summary>
-        /// <typeparam name="TReturnType"></typeparam>
-        /// <param name="inputFunc"></param>
-        /// <param name="value"></param>
-        public MethodArrange<TMirroredType> Arrange<TReturnType>(Expression<Func<TMirroredType, TReturnType>> inputFunc)
+        public ArrangeResult<TMirroredType> Arrange<TReturnType>(Expression<Func<TMirroredType, TReturnType>> inputFunc)
         {
-            var methodCallExpression = inputFunc.Body as MethodCallExpression;
+            if (inputFunc.Body is MethodCallExpression)
+                return HandleMethodArrange((MethodCallExpression)inputFunc.Body);
+            else if (inputFunc.Body is MemberExpression)
+                return HandleMemberArrange((MemberExpression)inputFunc.Body);
+            else
+                throw new MirrorArrangeException("Unsupported expression type " + inputFunc.Body.GetType().Name);
+        }
+
+
+        private ArrangeResult<TMirroredType> HandleMethodArrange(MethodCallExpression methodCallExpression)
+        {
             var method = methodCallExpression.Method;
             var parameters = methodCallExpression.Arguments;
 
             object[] parameterValues = GetParameterValues(parameters);
 
-            MethodCallInfo newMethodReturnValueInfo = GetMethodReturnValueInfo(method);
-            _proxy.MethodCallInfoCollection[method] = newMethodReturnValueInfo;
+            MethodCallInfo methodCallInfo = GetMethodCallInfo(method);
+            _proxy.MethodCallInfoCollection[method] = methodCallInfo;
 
-            return new MethodArrange<TMirroredType>() { MethodReturnValueInfo = newMethodReturnValueInfo, ParameterValues = parameterValues };
+            return new MethodArrangeResult<TMirroredType>() { MethodReturnValueInfo = methodCallInfo, ParameterValues = parameterValues };
         }
 
 
-        private object[] GetParameterValues(System.Collections.ObjectModel.ReadOnlyCollection<Expression> parameters)
+        private ArrangeResult<TMirroredType> HandleMemberArrange(MemberExpression memberExpression)
         {
-            object[] parameterArray = new object[parameters.Count];
+            var property = memberExpression.Member;
+            //var value = GetParameterValues(new Expression[]{memberExpression})[0];
 
-            for(int i = 0; i < parameters.Count; ++i)
+            PropertyCallInfo propertyCallInfo = GetPropertyCallInfo(property);
+            _proxy.PropertyInfoCollection[property] = propertyCallInfo;
+            return new MemberArrangeResult<TMirroredType>() { };
+        }
+
+
+        private object[] GetParameterValues(IEnumerable<Expression> parameters)
+        {
+            object[] parameterArray = new object[parameters.Count()];
+
+            for(int i = 0; i < parameters.Count(); ++i) // fixme
             {
-                var parameterExpression = parameters[i];
+                var parameterExpression = parameters.ElementAt(i); 
                 if (parameterExpression is ConstantExpression)
                 {
                     var constantExpression = parameterExpression as ConstantExpression;
@@ -97,7 +130,6 @@ namespace Mirror.Framework
 
             return parameterArray;
         }
-
 
         public TMirroredType It
         {
