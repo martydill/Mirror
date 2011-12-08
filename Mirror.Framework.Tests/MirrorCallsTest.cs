@@ -4,7 +4,7 @@ using Mirror.Framework;
 namespace Mirror.Tests
 {
     [TestFixture]
-    public class MethodActionTest
+    public class MirrorCallsTest
     {
         interface ITest
         {
@@ -16,7 +16,7 @@ namespace Mirror.Tests
         {
             var test = new Mirror<ITest>();
             int counter = 0;
-            test.Arrange(s => s.DoStuff()).Calls(() => ++counter);
+            test.Calls(s => s.DoStuff(), () => ++counter);
 
             test.It.DoStuff();
             test.It.DoStuff();

@@ -5,7 +5,7 @@ using NUnit.Framework;
 namespace Mirror.Tests
 {
     [TestFixture]
-    public class MethodThrowsTest
+    public class MirrorThrowsTest
     {
         interface ITest
         {
@@ -16,14 +16,14 @@ namespace Mirror.Tests
         public void TestMethodArrangeWithThrowsThrowsExceptionIfParameterIsNull()
         {
             var test = new Mirror<ITest>();
-            Assert.Throws<MirrorArrangeException>(() => test.Arrange(s => s.DoStuff()).Throws(null));
+            Assert.Throws<MirrorArrangeException>(() => test.Throws(s => s.DoStuff(), null));
         }
 
         [Test]
         public void TestMethodArrangeWithThrows()
         {
             var test = new Mirror<ITest>();
-            test.Arrange(s => s.DoStuff()).Throws(new Exception());
+            test.Throws(s => s.DoStuff(), new Exception());
 
             Assert.Throws<Exception>(() => test.It.DoStuff());
         }

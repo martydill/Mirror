@@ -38,7 +38,7 @@ namespace Mirror.Tests
         {
             var test = new Mirror<ITest>();
 
-            test.Arrange(s => s.GetInt()).Returns(987);
+            test.Returns(s => s.GetInt(), 987);
 
             Assert.AreEqual(987, test.It.GetInt());
         }
@@ -49,7 +49,7 @@ namespace Mirror.Tests
         {
             var test = new Mirror<ITest>();
 
-            test.Arrange(s => s.GetString()).Returns("234");
+            test.Returns(s => s.GetString(), "234");
 
             Assert.AreEqual("234", test.It.GetString());
         }
@@ -60,8 +60,8 @@ namespace Mirror.Tests
         {
             var test = new Mirror<ITest>();
 
-            test.Arrange(s => s.GetInt(123)).Returns(111);
-            test.Arrange(s => s.GetInt(456)).Returns(222);
+            test.Returns(s => s.GetInt(123), 111);
+            test.Returns(s => s.GetInt(456), 222);
 
             Assert.AreEqual(111, test.It.GetInt(123));
             Assert.AreEqual(222, test.It.GetInt(456));
@@ -72,9 +72,9 @@ namespace Mirror.Tests
         {
             var test = new Mirror<ITest>();
 
-            test.Arrange(s => s.GetString(123, "a")).Returns("123a");
-            test.Arrange(s => s.GetString(123, "b")).Returns("123b");
-            test.Arrange(s => s.GetString(456, "a")).Returns("456a");
+            test.Returns(s => s.GetString(123, "a"), "123a");
+            test.Returns(s => s.GetString(123, "b"), "123b");
+            test.Returns(s => s.GetString(456, "a"), "456a");
 
             Assert.AreEqual("123a", test.It.GetString(123, "a"));
             Assert.AreEqual("123b", test.It.GetString(123, "b"));
@@ -86,7 +86,7 @@ namespace Mirror.Tests
         {
             var test = new Mirror<ITest>();
 
-            test.Arrange(s => s.GetInt(IntReturner())).Returns(999);
+            test.Returns(s => s.GetInt(IntReturner()), 999);
 
             Assert.AreEqual(999, test.It.GetInt(IntReturner()));
         }

@@ -27,7 +27,7 @@ namespace Mirror.Tests
         {
             var test = new Mirror<ITest>();
 
-            test.Arrange(t => t.Name).Returns("abc");
+            test.Returns(t => t.Name, "abc");
 
             Assert.AreEqual("abc", test.It.Name);
         }

@@ -33,7 +33,7 @@ namespace Mirror.Framework
             return methodCallInfo.CallCount(parameters);
         }
 
-        public ArrangeResult<TMirroredType> Arrange(Expression<Action<TMirroredType>> inputFunc)
+        private ArrangeResult<TMirroredType> Arrange(Expression<Action<TMirroredType>> inputFunc)
         {
             var methodCallExpression = inputFunc.Body as MethodCallExpression;
             var method = methodCallExpression.Method;
@@ -71,10 +71,7 @@ namespace Mirror.Framework
         }
 
 
-        /// <summary>
-        /// Sets up the given return value or action for the given function
-        /// </summary>
-        public ArrangeResult<TMirroredType> Arrange<TReturnType>(Expression<Func<TMirroredType, TReturnType>> inputFunc)
+        public ArrangeResult<TMirroredType> Returns<TReturnType>(Expression<Func<TMirroredType, TReturnType>> inputFunc, TReturnType returnValue )
         {
             if (inputFunc.Body is MethodCallExpression)
                 return HandleMethodArrange((MethodCallExpression)inputFunc.Body);
@@ -82,6 +79,18 @@ namespace Mirror.Framework
                 return HandleMemberArrange((MemberExpression)inputFunc.Body);
             else
                 throw new MirrorArrangeException("Unsupported expression type " + inputFunc.Body.GetType().Name);
+        }
+
+
+        public ArrangeResult<TMirroredType> Calls(Expression<Action<TMirroredType>> inputFunc, Action methodToCall)
+        {
+            return null;
+        }
+
+
+        public ArrangeResult<TMirroredType> Throws(Expression<Action<TMirroredType>> inputFunc, Exception exceptionToThrow)
+        {
+            return null;
         }
 
 
