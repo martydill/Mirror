@@ -4,14 +4,13 @@ using System;
 using System.Collections.Generic;
 using System.Runtime.Remoting.Messaging;
 using System.Runtime.Remoting.Proxies;
+using System.Reflection;
 
 namespace Mirror.Framework
 {
     internal sealed class MirrorProxy : RealProxy
     {
-        private readonly Dictionary<object, MethodCallInfo> _methodCallInfoCollection = new Dictionary<object, MethodCallInfo>();
-
-        private readonly Dictionary<object, PropertyCallInfo> _propertyInfoCollection = new Dictionary<object, PropertyCallInfo>();
+        private readonly Dictionary<object, MemberCallInfo> _methodCallInfoCollection = new Dictionary<object, MemberCallInfo>();
 
         public MirrorProxy(Type classToProxy)
             : base(classToProxy)
@@ -19,6 +18,17 @@ namespace Mirror.Framework
 
         }
 
+        public object get(MethodInfo method)
+        {
+            if (method.IsSpecialName && method.Name.StartsWith("set_")|| method.Name.StartsWith("get_"))
+            {
+                var prop = method.DeclaringType.GetProperty(method.Name.Substring(4),
+                       BindingFlags.NonPublic | BindingFlags.Public | BindingFlags.Instance);
+                return prop;
+            }
+            return null;
+
+        }
         public override IMessage Invoke(IMessage msg)
         {
             if (msg is IMethodCallMessage)
@@ -26,9 +36,19 @@ namespace Mirror.Framework
                 var methodCallMessage = msg as IMethodCallMessage;
                 var methodCallMessageWrapper = new MethodCallMessageWrapper(methodCallMessage);
 
+               
+
+
                 object returnValue = null;
-                MethodCallInfo methodCallInfo = null;
-                if (MethodCallInfoCollection.TryGetValue(methodCallMessageWrapper.MethodBase, out methodCallInfo))
+                MemberCallInfo methodCallInfo = null;
+                object key = methodCallMessageWrapper.MethodBase;
+
+                var property = get(methodCallMessageWrapper.MethodBase as MethodInfo);
+                if (property != null)
+                    key = property;
+
+
+                if (MemberCallInfoCollection.TryGetValue(key, out methodCallInfo))
                 {
                     // Method call has been arranged. Figure out the desired return value.
                     returnValue = methodCallInfo.CalculateReturnValue(methodCallMessage.InArgs);
@@ -37,8 +57,8 @@ namespace Mirror.Framework
                 { 
                     // Method call has not been arranged. Add an arrangement for it (for logging purposes)
                     // and return a default value
-                    methodCallInfo = new MethodCallInfo();
-                    MethodCallInfoCollection.Add(methodCallMessageWrapper.MethodBase, methodCallInfo);
+                    methodCallInfo = new MemberCallInfo();
+                    MemberCallInfoCollection.Add(methodCallMessageWrapper.MethodBase, methodCallInfo);
                     returnValue = CalculateDefaultReturnValue(methodCallMessageWrapper);
                 }
 
@@ -62,19 +82,11 @@ namespace Mirror.Framework
             return returnValue;
         }
 
-        public Dictionary<object, MethodCallInfo> MethodCallInfoCollection
+        public Dictionary<object, MemberCallInfo> MemberCallInfoCollection
         {
             get
             {
                 return _methodCallInfoCollection;
-            }
-        }
-
-        public Dictionary<object, PropertyCallInfo> PropertyInfoCollection
-        {
-            get
-            {
-                return _propertyInfoCollection;
             }
         }
     }

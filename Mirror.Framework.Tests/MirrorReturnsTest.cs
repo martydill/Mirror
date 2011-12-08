@@ -8,6 +8,12 @@ namespace Mirror.Tests
     {
         interface ITest
         {
+            int Number { get; set; }
+
+            string Name { get; }
+
+            float Value { set; }
+
             void DoStuff();
 
             int GetInt();
@@ -19,6 +25,7 @@ namespace Mirror.Tests
             string GetString(int p1, string p2);
         }
 
+
         [Test]
         public void TestCallNonArrangedMethodDoesNothing()
         {
@@ -26,12 +33,14 @@ namespace Mirror.Tests
             test.It.DoStuff();
         }
 
+
         [Test]
         public void TestCallNonArrangedMethodWithReturnValueReturnsDefault()
         {
             var test = new Mirror<ITest>();
             Assert.AreEqual(0, test.It.GetInt(3));
         }
+
 
         [Test]
         public void TestParameterlessIntMethodCall()
@@ -67,6 +76,7 @@ namespace Mirror.Tests
             Assert.AreEqual(222, test.It.GetInt(456));
         }
 
+
         [Test]
         public void TestTwoParameterMethodArranging()
         {
@@ -81,6 +91,7 @@ namespace Mirror.Tests
             Assert.AreEqual("456a", test.It.GetString(456, "a"));
         }
 
+
         [Test]
         public void TestMethodParameterMethodArranging()
         {
@@ -91,7 +102,39 @@ namespace Mirror.Tests
             Assert.AreEqual(999, test.It.GetInt(IntReturner()));
         }
 
-  
+
+        [Test]
+        public void TestCallNonArrangedPropertyDoesNothing()
+        {
+            var test = new Mirror<ITest>();
+            test.It.Number = 7;
+        }
+
+
+        [Test]
+        public void TestReturnValueForGetter()
+        {
+            var test = new Mirror<ITest>();
+
+            test.Returns(t => t.Name, "abc");
+
+            Assert.AreEqual("abc", test.It.Name);
+        }
+
+
+        [Test]
+        public void TestCallsForGetter()
+        {
+            var test = new Mirror<ITest>();
+
+            bool called = false;
+            test.Calls(t => t.Name, () => called = true);
+
+            string s = test.It.Name;
+            Assert.IsTrue(called);
+        }
+
+
         private int IntReturner()
         {
             return 12345;

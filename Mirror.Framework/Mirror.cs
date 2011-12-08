@@ -2,6 +2,7 @@ using System;
 using System.Linq;  
 using System.Linq.Expressions;
 using System.Collections.Generic;
+using System.Reflection;
 
 namespace Mirror.Framework
 {
@@ -42,7 +43,7 @@ namespace Mirror.Framework
             var method = methodCallExpression.Method;
             var parameters = methodCallExpression.Arguments;
 
-            MethodCallInfo methodCallInfo = GetMethodCallInfo(method);
+            MemberCallInfo methodCallInfo = GetMethodCallInfo(method);
             return methodCallInfo.CallCount(parameters);
         }
 
@@ -54,12 +55,15 @@ namespace Mirror.Framework
         {
             if (inputFunc.Body is MethodCallExpression)
             {
-               var methodCallInfo = HandleMethodArrange((MethodCallExpression)inputFunc.Body);
+               var methodCallInfo = AddMethod((MethodCallExpression)inputFunc.Body);
                var parameterValues = GetMethodParameters((MethodCallExpression)inputFunc.Body);
                methodCallInfo.AddReturnValue(returnValue, parameterValues);
             }
             else if (inputFunc.Body is MemberExpression)
-                HandleMemberArrange((MemberExpression)inputFunc.Body, returnValue);
+            {
+                var memberInfo = AddMember((MemberExpression)inputFunc.Body);
+                memberInfo.AddReturnValue(returnValue, null);
+            }
             else
                 throw new MirrorArrangeException("Unsupported expression type " + inputFunc.Body.GetType().Name);
         }
@@ -77,7 +81,29 @@ namespace Mirror.Framework
 
             if (inputFunc.Body is MethodCallExpression)
             {
-                var methodCallInfo = HandleMethodArrange((MethodCallExpression)inputFunc.Body);
+                var methodCallInfo = AddMethod((MethodCallExpression)inputFunc.Body);
+                var parameterValues = GetMethodParameters((MethodCallExpression)inputFunc.Body);
+                methodCallInfo.AddMethodExecution(methodToCall, parameterValues);
+            }
+            else
+                throw new MirrorArrangeException("Unsupported expression type " + inputFunc.Body.GetType().Name);
+        }
+
+
+        
+        /// <summary>
+        /// Calls the specified function when the specified method or property is called with the given parameters
+        /// </summary>
+        /// <param name="inputFunc">The function being mocked</param>
+        /// <param name="methodToCall">The method to call</param>
+        public void Calls<TReturnType>(Expression<Func<TMirroredType, TReturnType>> inputFunc, Action methodToCall)
+        {
+            if (methodToCall == null)
+                throw new MirrorArrangeException("methodToCall cannot be null");
+
+            if (inputFunc.Body is MethodCallExpression)
+            {
+                var methodCallInfo = AddMethod((MethodCallExpression)inputFunc.Body);
                 var parameterValues = GetMethodParameters((MethodCallExpression)inputFunc.Body);
                 methodCallInfo.AddMethodExecution(methodToCall, parameterValues);
             }
@@ -98,7 +124,7 @@ namespace Mirror.Framework
 
             if (inputFunc.Body is MethodCallExpression)
             {
-                var methodCallInfo = HandleMethodArrange((MethodCallExpression)inputFunc.Body);
+                var methodCallInfo = AddMethod((MethodCallExpression)inputFunc.Body);
                 var parameterValues = GetMethodParameters((MethodCallExpression)inputFunc.Body);
                 methodCallInfo.AddMethodException(exceptionToThrow, parameterValues);
             }
@@ -107,37 +133,53 @@ namespace Mirror.Framework
         }
 
 
-        private MethodCallInfo GetMethodCallInfo(System.Reflection.MethodInfo method)
+        private MemberCallInfo GetMethodCallInfo(System.Reflection.MethodInfo method)
         {
-            MethodCallInfo newMethodReturnValueInfo = null;
-            if (!_proxy.MethodCallInfoCollection.TryGetValue(method, out newMethodReturnValueInfo))
+            MemberCallInfo memberCallInfo = null;
+            if (!_proxy.MemberCallInfoCollection.TryGetValue(method, out memberCallInfo))
             {
-                newMethodReturnValueInfo = new MethodCallInfo();
-                _proxy.MethodCallInfoCollection.Add(method, newMethodReturnValueInfo);
+                memberCallInfo = new MemberCallInfo();
+                _proxy.MemberCallInfoCollection.Add(method, memberCallInfo);
             }
-            return newMethodReturnValueInfo;
+            return memberCallInfo;
         }
 
-
-        private PropertyCallInfo GetPropertyCallInfo(System.Reflection.MemberInfo property)
+        private MemberCallInfo GetMemberCallInfo(System.Reflection.MemberInfo member)
         {
-            PropertyCallInfo propertyCallInfo = null;
-            if (!_proxy.PropertyInfoCollection.TryGetValue(property, out propertyCallInfo))
+            MemberCallInfo memberCallInfo = null;
+            if (!_proxy.MemberCallInfoCollection.TryGetValue(member, out memberCallInfo))
             {
-                propertyCallInfo = new PropertyCallInfo();
-                _proxy.PropertyInfoCollection.Add(property, propertyCallInfo);
+                memberCallInfo = new MemberCallInfo();
+                _proxy.MemberCallInfoCollection.Add(member, memberCallInfo);
             }
-            return propertyCallInfo;
+            return memberCallInfo;
         }
 
-
-        private MethodCallInfo HandleMethodArrange(MethodCallExpression methodCallExpression)
+        private MemberCallInfo AddMethod(MethodCallExpression methodCallExpression)
         {
             var method = methodCallExpression.Method;
 
-            MethodCallInfo methodCallInfo = GetMethodCallInfo(method);
-            _proxy.MethodCallInfoCollection[method] = methodCallInfo;
+            MemberCallInfo methodCallInfo = GetMethodCallInfo(method);
+            _proxy.MemberCallInfoCollection[method] = methodCallInfo;
             return methodCallInfo;
+        }
+
+
+
+        private MemberCallInfo AddMember(MemberExpression memberExpression)
+        {
+            var member = memberExpression.Member;
+            //memberExpression.
+            MemberCallInfo methodCallInfo = GetMemberCallInfo(member);
+            _proxy.MemberCallInfoCollection[member] = methodCallInfo;
+            return methodCallInfo;
+
+            //var property = memberExpression.Member;
+            //var value = GetParameterValues(new Expression[]{memberExpression})[0];
+
+            //PropertyCallInfo propertyCallInfo = GetPropertyCallInfo(property);
+            //_proxy.PropertyInfoCollection[property] = propertyCallInfo;
+            //return new MemberArrangeResult<TMirroredType>() { };
         }
 
 
@@ -147,17 +189,6 @@ namespace Mirror.Framework
 
             object[] parameterValues = GetParameterValues(parameters);
             return parameterValues;
-        }
-
-
-        private void HandleMemberArrange(MemberExpression memberExpression, object returnValue)
-        {
-            var property = memberExpression.Member;
-            //var value = GetParameterValues(new Expression[]{memberExpression})[0];
-
-            PropertyCallInfo propertyCallInfo = GetPropertyCallInfo(property);
-            _proxy.PropertyInfoCollection[property] = propertyCallInfo;
-            //return new MemberArrangeResult<TMirroredType>() { };
         }
 
 

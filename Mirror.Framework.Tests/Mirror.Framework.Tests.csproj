@@ -41,7 +41,6 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="PropertyArrangeTest.cs" />
     <Compile Include="MethodCountTest.cs" />
     <Compile Include="MirrorThrowsTest.cs" />
     <Compile Include="MirrorCallsTest.cs" />

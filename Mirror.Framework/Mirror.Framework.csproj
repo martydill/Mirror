@@ -61,12 +61,11 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="MirrorArrangeException.cs" />
-    <Compile Include="MethodReturnValueInfo.cs" />
+    <Compile Include="MemberCallInfo.cs" />
     <Compile Include="Mirror.cs" />
     <Compile Include="MirrorCreationException.cs" />
     <Compile Include="MirrorProxy.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
-    <Compile Include="PropertyCallInfo.cs" />
   </ItemGroup>
   <ItemGroup>
     <None Include="app.config" />

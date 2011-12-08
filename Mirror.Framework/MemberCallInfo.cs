@@ -6,9 +6,9 @@ using System.Linq;
 namespace Mirror.Framework
 {
     /// <summary>
-    /// Stores the return value info for a given method, based on its parameter values
+    /// Stores the mock info for a given method/property
     /// </summary>
-    public class MethodCallInfo
+    public class MemberCallInfo
     {
         internal class ParameterInfo
         {
@@ -21,7 +21,7 @@ namespace Mirror.Framework
             internal object[] ParameterValues { get; set; }
         }
 
-        private readonly List<MethodCallCountInstance> _methodCallCounts = new List<MethodCallCountInstance>();
+        private readonly List<CallCountInstance> _methodCallCounts = new List<CallCountInstance>();
         private readonly List<ParameterInfo> _parameterValues = new List<ParameterInfo>();
 
         internal void AddReturnValue(object returnValue, object[] parameterValues)
@@ -33,9 +33,12 @@ namespace Mirror.Framework
         {
             object returnValue = null;
 
+
             foreach (var parameterInfo in _parameterValues)
             {
-                if (methodArguments.Count() != parameterInfo.ParameterValues.Count())
+              
+
+                if (parameterInfo.ParameterValues != null && methodArguments.Count() != parameterInfo.ParameterValues.Count())
                     continue;
 
                 bool doParametersMatch = DoParametersMatch(methodArguments, parameterInfo.ParameterValues);
@@ -62,16 +65,20 @@ namespace Mirror.Framework
         private static bool DoParametersMatch(object[] methodArguments, object[] arrangedParameterValues)
         {
             bool doParametersMatch = true;
-            for (int i = 0; i < methodArguments.Count(); ++i)
-            {
-                object result1 = GetValueForParameterValue(arrangedParameterValues[i]);
-                object result2 = GetValueForParameterValue(methodArguments[i]);
 
-                // Then, check if it matches the given parameters
-                if (!Object.Equals(result1, result2))
+            if (arrangedParameterValues != null && methodArguments.Count() > 0)
+            {
+                for (int i = 0; i < methodArguments.Count(); ++i)
                 {
-                    doParametersMatch = false;
-                    break;
+                    object result1 = GetValueForParameterValue(arrangedParameterValues[i]);
+                    object result2 = GetValueForParameterValue(methodArguments[i]);
+
+                    // Then, check if it matches the given parameters
+                    if (!Object.Equals(result1, result2))
+                    {
+                        doParametersMatch = false;
+                        break;
+                    }
                 }
             }
             return doParametersMatch;
@@ -104,13 +111,13 @@ namespace Mirror.Framework
         /// </summary>
         internal void LogMethodCall(object[] parameters)
         {
-            _methodCallCounts.Add(new MethodCallCountInstance() { Parameters = parameters });
+            _methodCallCounts.Add(new CallCountInstance() { Parameters = parameters });
         }
 
         /// <summary>
         /// Returns the number of times the method was called with the given set of parameters
         /// </summary>
-        internal int CallCount(System.Collections.ObjectModel.ReadOnlyCollection<Expression> parameters)
+        internal int CallCount(IEnumerable<Expression> parameters)
         {
             int callCount = 0;
 
@@ -127,9 +134,9 @@ namespace Mirror.Framework
     }
 
     /// <summary>
-    /// Keeps track of individual instances of method calls with the specified parameters
+    /// Keeps track of individual instances of method/property calls with the specified parameters
     /// </summary>
-    internal class MethodCallCountInstance
+    internal class CallCountInstance
     {
         /// <summary>
         /// The list of parameters that the method was called with
