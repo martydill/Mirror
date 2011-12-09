@@ -39,6 +39,9 @@ namespace Mirror.Framework
         /// </summary>
         public int Count(Expression<Action<TMirroredType>> inputFunc)
         {
+            if (inputFunc == null)
+                throw new ArgumentNullException("inputFunc", "inputFunc is null.");
+
             var methodCallExpression = inputFunc.Body as MethodCallExpression;
             var method = methodCallExpression.Method;
             var parameters = methodCallExpression.Arguments;
@@ -51,18 +54,21 @@ namespace Mirror.Framework
         /// <summary>
         /// Configures the mirror to return the specified value for the specified method or property call
         /// </summary>
-        public void Returns<TReturnType>(Expression<Func<TMirroredType, TReturnType>> inputFunc, TReturnType returnValue )
+        public void Returns<TReturnType>(Expression<Func<TMirroredType, TReturnType>> inputFunc, TReturnType returnValue)
         {
+            if (inputFunc == null)
+                throw new ArgumentNullException("inputFunc", "inputFunc is null.");
+
             if (inputFunc.Body is MethodCallExpression)
             {
-               var methodCallInfo = AddMethod((MethodCallExpression)inputFunc.Body);
-               var parameterValues = GetMethodParameters((MethodCallExpression)inputFunc.Body);
-               methodCallInfo.AddReturnValue(returnValue, parameterValues);
+                var methodCallInfo = AddMethod((MethodCallExpression)inputFunc.Body);
+                var parameterValues = GetMethodParameters((MethodCallExpression)inputFunc.Body);
+                methodCallInfo.AddReturns(returnValue, parameterValues);
             }
             else if (inputFunc.Body is MemberExpression)
             {
                 var memberInfo = AddMember((MemberExpression)inputFunc.Body);
-                memberInfo.AddReturnValue(returnValue, null);
+                memberInfo.AddReturns(returnValue, null);
             }
             else
                 throw new MirrorArrangeException("Unsupported expression type " + inputFunc.Body.GetType().Name);
@@ -83,7 +89,7 @@ namespace Mirror.Framework
             {
                 var methodCallInfo = AddMethod((MethodCallExpression)inputFunc.Body);
                 var parameterValues = GetMethodParameters((MethodCallExpression)inputFunc.Body);
-                methodCallInfo.AddMethodExecution(methodToCall, parameterValues);
+                methodCallInfo.AddCalls(methodToCall, parameterValues);
             }
             else
                 throw new MirrorArrangeException("Unsupported expression type " + inputFunc.Body.GetType().Name);
@@ -105,7 +111,12 @@ namespace Mirror.Framework
             {
                 var methodCallInfo = AddMethod((MethodCallExpression)inputFunc.Body);
                 var parameterValues = GetMethodParameters((MethodCallExpression)inputFunc.Body);
-                methodCallInfo.AddMethodExecution(methodToCall, parameterValues);
+                methodCallInfo.AddCalls(methodToCall, parameterValues);
+            }
+            else if (inputFunc.Body is MemberExpression)
+            {
+                var memberInfo = AddMember((MemberExpression)inputFunc.Body);
+                memberInfo.AddCalls(methodToCall, null);
             }
             else
                 throw new MirrorArrangeException("Unsupported expression type " + inputFunc.Body.GetType().Name);
@@ -119,19 +130,48 @@ namespace Mirror.Framework
         /// <param name="exceptionToThrow">The exception to be thrown</param>
         public void Throws(Expression<Action<TMirroredType>> inputFunc, Exception exceptionToThrow)
         {
+            if (inputFunc == null)
+                throw new ArgumentNullException("inputFunc", "inputFunc is null.");
             if (exceptionToThrow == null)
-                throw new MirrorArrangeException("exceptionToThrow cannot be null");
+                throw new ArgumentNullException("exceptionToThrow", "exceptionToThrow is null.");
 
             if (inputFunc.Body is MethodCallExpression)
             {
                 var methodCallInfo = AddMethod((MethodCallExpression)inputFunc.Body);
                 var parameterValues = GetMethodParameters((MethodCallExpression)inputFunc.Body);
-                methodCallInfo.AddMethodException(exceptionToThrow, parameterValues);
+                methodCallInfo.AddThrows(exceptionToThrow, parameterValues);
             }
             else
                 throw new MirrorArrangeException("Unsupported expression type " + inputFunc.Body.GetType().Name);
         }
 
+
+        /// <summary>
+        /// Throws the specified exception when the specified method or property is called with the specified parameters
+        /// </summary>
+        /// <param name="inputFunc">The function being mocked</param>
+        /// <param name="exceptionToThrow">The exception to be thrown</param>
+        public void Throws<TReturnType>(Expression<Func<TMirroredType, TReturnType>> inputFunc, Exception exceptionToThrow)
+        {
+            if (inputFunc == null)
+                throw new ArgumentNullException("inputFunc", "inputFunc is null.");
+            if (exceptionToThrow == null)
+                throw new ArgumentNullException("exceptionToThrow", "exceptionToThrow is null.");
+
+            if (inputFunc.Body is MethodCallExpression)
+            {
+                var methodCallInfo = AddMethod((MethodCallExpression)inputFunc.Body);
+                var parameterValues = GetMethodParameters((MethodCallExpression)inputFunc.Body);
+                methodCallInfo.AddThrows(exceptionToThrow, parameterValues);
+            }
+            else if (inputFunc.Body is MemberExpression)
+            {
+                var memberInfo = AddMember((MemberExpression)inputFunc.Body);
+                memberInfo.AddThrows(exceptionToThrow, null);
+            }
+            else
+                throw new MirrorArrangeException("Unsupported expression type " + inputFunc.Body.GetType().Name);
+        }
 
         private MemberCallInfo GetMethodCallInfo(System.Reflection.MethodInfo method)
         {

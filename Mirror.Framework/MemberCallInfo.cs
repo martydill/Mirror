@@ -24,7 +24,7 @@ namespace Mirror.Framework
         private readonly List<CallCountInstance> _methodCallCounts = new List<CallCountInstance>();
         private readonly List<ParameterInfo> _parameterValues = new List<ParameterInfo>();
 
-        internal void AddReturnValue(object returnValue, object[] parameterValues)
+        internal void AddReturns(object returnValue, object[] parameterValues)
         {
             _parameterValues.Add(new ParameterInfo() { ReturnValue = returnValue, ParameterValues = parameterValues });
         }
@@ -96,12 +96,12 @@ namespace Mirror.Framework
             return result;
         }
 
-        internal void AddMethodExecution(Action methodToCall, object[] parameterValues)
+        internal void AddCalls(Action methodToCall, object[] parameterValues)
         {
             _parameterValues.Add(new ParameterInfo() { MethodToCall = methodToCall, ParameterValues = parameterValues });
         }
 
-        internal void AddMethodException(Exception exception, object[] ParameterValues)
+        internal void AddThrows(Exception exception, object[] ParameterValues)
         {
             _parameterValues.Add(new ParameterInfo() { ExceptionToThrow = exception, ParameterValues = ParameterValues });
         }

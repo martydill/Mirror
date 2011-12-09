@@ -1,5 +1,6 @@
 ﻿using NUnit.Framework;
 using Mirror.Framework;
+using System;
 
 namespace Mirror.Tests
 {
@@ -31,6 +32,14 @@ namespace Mirror.Tests
         {
             var test = new Mirror<ITest>();
             test.It.DoStuff();
+        }
+
+
+        [Test]
+        public void TestReturnsNullLambdaThrowsException()
+        {
+            var test = new Mirror<ITest>();
+            Assert.Throws<ArgumentNullException>(() => test.Returns(null, 5));
         }
 
 
@@ -119,19 +128,6 @@ namespace Mirror.Tests
             test.Returns(t => t.Name, "abc");
 
             Assert.AreEqual("abc", test.It.Name);
-        }
-
-
-        [Test]
-        public void TestCallsForGetter()
-        {
-            var test = new Mirror<ITest>();
-
-            bool called = false;
-            test.Calls(t => t.Name, () => called = true);
-
-            string s = test.It.Name;
-            Assert.IsTrue(called);
         }
 
 

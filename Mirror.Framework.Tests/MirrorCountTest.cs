@@ -1,10 +1,11 @@
 ﻿using Mirror.Framework;
 using NUnit.Framework;
+using System;
 
 namespace Mirror.Tests
 {
     [TestFixture]
-    class MethodCountTest
+    class MirrorCountTest
     {
         class test
         {
@@ -15,6 +16,14 @@ namespace Mirror.Tests
             void DoStuff();
             void DoStuff(int i);
             void DoStuff(test t, string s);
+        }
+
+
+        [Test]
+        public void TestCountThrowsExceptionIfLambdaIsNull()
+        {
+            var mock = new Mirror<ITest>();
+            Assert.Throws<ArgumentNullException>(() => mock.Count(null));
         }
 
 
