@@ -59,5 +59,17 @@ namespace Mirror.Tests
 
             Assert.Throws<ArgumentException>(() => { var n = test.It.Name; });
         }
+
+
+        [Test]
+        public void TestThrowsWithAnyParameterThrowsWhenParametersMatch()
+        {
+            var test = new Mirror<ITest>();
+            test.Throws(s => s.DoStuff(Any<int>.Value), new Exception());
+            
+            Assert.Throws<Exception>(() => test.It.DoStuff(1));
+            Assert.Throws<Exception>(() => test.It.DoStuff(5));
+            Assert.Throws<Exception>(() => test.It.DoStuff(55));
+        }
     }
 }

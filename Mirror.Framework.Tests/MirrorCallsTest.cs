@@ -10,6 +10,8 @@ namespace Mirror.Tests
         {
             void DoStuff();
 
+            void DoStuff(int i);
+
             string Name { get; set;  }
         }
 
@@ -46,6 +48,20 @@ namespace Mirror.Tests
 
             string s = test.It.Name;
             Assert.IsTrue(called);
+        }
+
+
+        [Test]
+        public void TestCallsForAnyParameter()
+        {
+            var test = new Mirror<ITest>();
+            int counter = 0;
+            test.Calls(s => s.DoStuff(Any<int>.Value), () => ++counter);
+
+            test.It.DoStuff(1);
+            test.It.DoStuff(234234);
+            test.It.DoStuff(55);
+            Assert.AreEqual(3, counter);
         }
     }
 }

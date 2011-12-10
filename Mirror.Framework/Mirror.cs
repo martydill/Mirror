@@ -33,7 +33,7 @@ namespace Mirror.Framework
             }
         }
 
-
+                
         /// <summary>
         /// Returns the number of times the given method was called with the given parameters
         /// </summary>
@@ -94,7 +94,6 @@ namespace Mirror.Framework
             else
                 throw new MirrorArrangeException("Unsupported expression type " + inputFunc.Body.GetType().Name);
         }
-
 
         
         /// <summary>

@@ -135,5 +135,30 @@ namespace Mirror.Tests
         {
             return 12345;
         }
+
+
+
+        [Test]
+        public void TestReturnValueForMethodWithAnyParameters()
+        {
+            var test = new Mirror<ITest>();
+
+            test.Returns(t => t.GetInt(Any<int>.Value), 5);
+
+            Assert.AreEqual(5, test.It.GetInt(999));
+            Assert.AreEqual(5, test.It.GetInt(1));
+        }
+
+        [Test]
+        public void TestReturnValueForMethodWithSomeAnyParameters()
+        {
+            var test = new Mirror<ITest>();
+
+            test.Returns(t => t.GetString(1 ,Any<string>.Value), "a");
+            test.Returns(t => t.GetString(2, Any<string>.Value), "b");
+
+            Assert.AreEqual("a", test.It.GetString(1, "asdf"));
+            Assert.AreEqual("b", test.It.GetString(2, "abcd"));
+        }
     }
 }

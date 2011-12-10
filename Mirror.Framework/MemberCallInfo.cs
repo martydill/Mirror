@@ -70,18 +70,38 @@ namespace Mirror.Framework
             {
                 for (int i = 0; i < methodArguments.Count(); ++i)
                 {
-                    object result1 = GetValueForParameterValue(arrangedParameterValues[i]);
-                    object result2 = GetValueForParameterValue(methodArguments[i]);
+                    object arrangedMethodArgument = GetValueForParameterValue(arrangedParameterValues[i]);
+                    object actualMethodArgument = GetValueForParameterValue(methodArguments[i]);
 
-                    // Then, check if it matches the given parameters
-                    if (!Object.Equals(result1, result2))
+                    if(!IsAnyParameter(arrangedParameterValues[i]))
                     {
-                        doParametersMatch = false;
-                        break;
+                        // Then, check if it matches the given parameters
+                        if (!Object.Equals(arrangedMethodArgument, actualMethodArgument))
+                        {
+                            doParametersMatch = false;
+                            break;
+                        }
                     }
                 }
             }
             return doParametersMatch;
+        }
+
+        /// <summary>
+        /// Returns whether or not the given arranged parameter is an Any of T "/>
+        /// </summary>
+        private static bool IsAnyParameter(object arrangedParameterValue)
+        {
+            bool isAnyParameter = false;
+            var expr = arrangedParameterValue as MemberExpression;
+            if (expr != null)
+            {
+                var type = expr.Member.DeclaringType;
+                if(type.IsGenericType)
+                    isAnyParameter = type.GetGenericTypeDefinition() == typeof(Any<>);
+            }
+
+            return isAnyParameter;
         }
 
         private static object GetValueForParameterValue(object result)

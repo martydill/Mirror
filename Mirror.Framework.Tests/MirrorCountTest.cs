@@ -66,5 +66,11 @@ namespace Mirror.Tests
             Assert.AreEqual(1, mock.Count(s => s.DoStuff(t, "b")));
             Assert.AreEqual(2, mock.Count(s => s.DoStuff(null, "a")));
         }
+
+        [Test]
+        public void TestCountReturnsCorrectValuesForAnyParameterMethod()
+        {
+            // TODO
+        }
     }
 }
