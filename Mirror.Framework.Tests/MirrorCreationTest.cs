@@ -1,14 +1,14 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using NUnit.Framework;
+﻿// Copyright 2011 Marty Dill
+// See License.txt for details
+
+using System;
 using Mirror.Framework;
+using NUnit.Framework;
 
 namespace Mirror.Tests
 {
     [TestFixture]
-    public class MockCreationTest
+    public class MirrorCreationTest
     {
         class ConcreteClass
         {

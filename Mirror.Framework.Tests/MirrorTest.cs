@@ -1,4 +1,7 @@
-﻿using Mirror.Framework;
+﻿// Copyright 2011 Marty Dill
+// See License.txt for details
+
+using Mirror.Framework;
 using NUnit.Framework;
 
 namespace Mirror.Tests

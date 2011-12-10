@@ -1,4 +1,7 @@
-﻿using System;
+﻿// Copyright 2011 Marty Dill
+// See License.txt for details
+
+using System;
 using Mirror.Framework;
 using NUnit.Framework;
 

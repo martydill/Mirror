@@ -1,8 +1,11 @@
+// Copyright 2011 Marty Dill
+// See License.txt for details
+
 using System;
-using System.Linq;  
-using System.Linq.Expressions;
 using System.Collections.Generic;
-using System.Reflection;
+using System.Globalization;
+using System.Linq;
+using System.Linq.Expressions;
 
 namespace Mirror.Framework
 {
@@ -15,7 +18,7 @@ namespace Mirror.Framework
         {
             var type = typeof(TMirroredType);
             if (!type.IsInterface && !type.IsSubclassOf(typeof(MarshalByRefObject)))
-                throw new MirrorCreationException(String.Format("Type {0} is not an interface or a MarshalByRefObject and cannot be mocked", type.FullName));
+                throw new MirrorCreationException(String.Format(CultureInfo.CurrentCulture, "Type {0} is not an interface or a MarshalByRefObject and cannot be mocked", type.FullName));
 
             _proxy = new MirrorProxy(type);
             _proxyImpl = (TMirroredType)_proxy.GetTransparentProxy();
@@ -222,7 +225,7 @@ namespace Mirror.Framework
         }
 
 
-        private object[] GetMethodParameters(MethodCallExpression methodCallExpression)
+        private static object[] GetMethodParameters(MethodCallExpression methodCallExpression)
         {
             var parameters = methodCallExpression.Arguments;
 
@@ -231,7 +234,7 @@ namespace Mirror.Framework
         }
 
 
-        private object[] GetParameterValues(IEnumerable<Expression> parameters)
+        private static object[] GetParameterValues(IEnumerable<Expression> parameters)
         {
             object[] parameterArray = new object[parameters.Count()];
 

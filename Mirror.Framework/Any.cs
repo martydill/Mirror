@@ -1,10 +1,12 @@
+// Copyright 2011 Marty Dill
+// See License.txt for details
 
 namespace Mirror.Framework
 {
     /// <summary>
     /// Object that represents 'any parameter'. Used to allow for a mocking of, for example, any string value
     /// </summary>
-    public class Any<TParameterType>
+    public static class Any<TParameterType>
     {
         /// <summary>
         /// Returns an object of type T
@@ -13,8 +15,8 @@ namespace Mirror.Framework
         {
             get
             {
-            return default(TParameterType);
+                return default(TParameterType);
             }
-         }
+        }
     }
 }

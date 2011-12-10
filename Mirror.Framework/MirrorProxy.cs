@@ -1,16 +1,21 @@
-// The subclass of RealProxy that handles method calls
+// Copyright 2011 Marty Dill
+// See License.txt for details
 
 using System;
 using System.Collections.Generic;
 using System.Runtime.Remoting.Messaging;
 using System.Runtime.Remoting.Proxies;
 using System.Reflection;
+using System.Globalization;
 
 namespace Mirror.Framework
 {
+    /// <summary>
+    /// The subclass of RealProxy that handles intercepting of method calls
+    /// </summary>
     internal sealed class MirrorProxy : RealProxy
     {
-        private readonly Dictionary<object, MemberCallInfo> _methodCallInfoCollection = new Dictionary<object, MemberCallInfo>();
+        private readonly Dictionary<object, MemberCallInfo> _memberCallInfoCollection = new Dictionary<object, MemberCallInfo>();
 
         public MirrorProxy(Type classToProxy)
             : base(classToProxy)
@@ -25,11 +30,14 @@ namespace Mirror.Framework
         {
             get
             {
-                return _methodCallInfoCollection;
+                return _memberCallInfoCollection;
             }
         }
 
 
+        /// <summary>
+        /// Handles the messages that our proxy receives
+        /// </summary>
         public override IMessage Invoke(IMessage msg)
         {
             if (msg is IMethodCallMessage)
@@ -72,9 +80,9 @@ namespace Mirror.Framework
         /// <summary>
         /// From http://stackoverflow.com/a/7819571/184630
         /// </summary>
-        private PropertyInfo GetPropertyInfoFromMethodInfo(MethodInfo method)
+        private static PropertyInfo GetPropertyInfoFromMethodInfo(MethodInfo method)
         {
-            if (method.IsSpecialName && method.Name.StartsWith("set_") || method.Name.StartsWith("get_"))
+            if (method.IsSpecialName && method.Name.StartsWith("set_", true, CultureInfo.InvariantCulture) || method.Name.StartsWith("get_", true, CultureInfo.InvariantCulture))
             {
                 var prop = method.DeclaringType.GetProperty(method.Name.Substring(4), BindingFlags.NonPublic | BindingFlags.Public | BindingFlags.Instance);
                 return prop;
@@ -86,7 +94,7 @@ namespace Mirror.Framework
         /// <summary>
         /// Calculates and returns the default return value for the given message
         /// </summary>
-        private object CalculateDefaultReturnValue(MethodCallMessageWrapper methodCallMessage)
+        private static object CalculateDefaultReturnValue(MethodCallMessageWrapper methodCallMessage)
         {
             var returnType = methodCallMessage.MethodSignature as Type[];
 
