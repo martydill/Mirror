@@ -2,9 +2,9 @@
 // See License.txt for details
 
 using System;
-using System.Linq.Expressions;
 using System.Collections.Generic;
 using System.Linq;
+using System.Linq.Expressions;
 
 namespace Mirror.Framework
 {

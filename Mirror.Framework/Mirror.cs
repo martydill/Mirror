@@ -9,9 +9,19 @@ using System.Linq.Expressions;
 
 namespace Mirror.Framework
 {
+    /// <summary>
+    /// The class responsible for doing all of the work
+    /// </summary>
     public class Mirror<TMirroredType> where TMirroredType : class
     {
+        /// <summary>
+        /// The backing store for the object we are mocking
+        /// </summary>
         private readonly TMirroredType _proxyImpl;
+
+        /// <summary>
+        /// The proxy object that does the method interception
+        /// </summary>
         private readonly MirrorProxy _proxy;
 
         public Mirror()
@@ -88,14 +98,7 @@ namespace Mirror.Framework
             if (methodToCall == null)
                 throw new MirrorArrangeException("methodToCall cannot be null");
 
-            if (inputFunc.Body is MethodCallExpression)
-            {
-                var methodCallInfo = AddMethod((MethodCallExpression)inputFunc.Body);
-                var parameterValues = GetMethodParameters((MethodCallExpression)inputFunc.Body);
-                methodCallInfo.AddCalls(methodToCall, parameterValues);
-            }
-            else
-                throw new MirrorArrangeException("Unsupported expression type " + inputFunc.Body.GetType().Name);
+            CallsImpl(inputFunc.Body, methodToCall);
         }
 
         
@@ -109,19 +112,7 @@ namespace Mirror.Framework
             if (methodToCall == null)
                 throw new MirrorArrangeException("methodToCall cannot be null");
 
-            if (inputFunc.Body is MethodCallExpression)
-            {
-                var methodCallInfo = AddMethod((MethodCallExpression)inputFunc.Body);
-                var parameterValues = GetMethodParameters((MethodCallExpression)inputFunc.Body);
-                methodCallInfo.AddCalls(methodToCall, parameterValues);
-            }
-            else if (inputFunc.Body is MemberExpression)
-            {
-                var memberInfo = AddMember((MemberExpression)inputFunc.Body);
-                memberInfo.AddCalls(methodToCall, null);
-            }
-            else
-                throw new MirrorArrangeException("Unsupported expression type " + inputFunc.Body.GetType().Name);
+            CallsImpl(inputFunc.Body, methodToCall);
         }
 
 
@@ -134,17 +125,8 @@ namespace Mirror.Framework
         {
             if (inputFunc == null)
                 throw new ArgumentNullException("inputFunc", "inputFunc is null.");
-            if (exceptionToThrow == null)
-                throw new ArgumentNullException("exceptionToThrow", "exceptionToThrow is null.");
 
-            if (inputFunc.Body is MethodCallExpression)
-            {
-                var methodCallInfo = AddMethod((MethodCallExpression)inputFunc.Body);
-                var parameterValues = GetMethodParameters((MethodCallExpression)inputFunc.Body);
-                methodCallInfo.AddThrows(exceptionToThrow, parameterValues);
-            }
-            else
-                throw new MirrorArrangeException("Unsupported expression type " + inputFunc.Body.GetType().Name);
+            ThrowsImpl(inputFunc.Body, exceptionToThrow);
         }
 
 
@@ -157,23 +139,61 @@ namespace Mirror.Framework
         {
             if (inputFunc == null)
                 throw new ArgumentNullException("inputFunc", "inputFunc is null.");
+
+            ThrowsImpl(inputFunc.Body, exceptionToThrow);
+        }
+
+
+        #region Private Methods
+
+        /// <summary>
+        /// Does the work of setting up the Throws method
+        /// </summary>
+        /// <param name="inputFunc">The body of the function beign mocked</param>
+        /// <param name="exceptionToThrow">The exception to throw</param>
+        private void ThrowsImpl(Expression inputFunc, Exception exceptionToThrow)
+        {
             if (exceptionToThrow == null)
                 throw new ArgumentNullException("exceptionToThrow", "exceptionToThrow is null.");
 
-            if (inputFunc.Body is MethodCallExpression)
+            if (inputFunc is MethodCallExpression)
             {
-                var methodCallInfo = AddMethod((MethodCallExpression)inputFunc.Body);
-                var parameterValues = GetMethodParameters((MethodCallExpression)inputFunc.Body);
+                var methodCallInfo = AddMethod((MethodCallExpression)inputFunc);
+                var parameterValues = GetMethodParameters((MethodCallExpression)inputFunc);
                 methodCallInfo.AddThrows(exceptionToThrow, parameterValues);
             }
-            else if (inputFunc.Body is MemberExpression)
+            else if (inputFunc is MemberExpression)
             {
-                var memberInfo = AddMember((MemberExpression)inputFunc.Body);
+                var memberInfo = AddMember((MemberExpression)inputFunc);
                 memberInfo.AddThrows(exceptionToThrow, null);
             }
             else
-                throw new MirrorArrangeException("Unsupported expression type " + inputFunc.Body.GetType().Name);
+                throw new MirrorArrangeException("Unsupported expression type " + inputFunc.GetType().Name);
         }
+
+        /// <summary>
+        /// Does the work of setting up the Calls mock
+        /// </summary>
+        /// <param name="inputFunc">The body of the function being mocked</param>
+        /// <param name="methodToCall">The method to call</param>
+        private void CallsImpl(Expression inputFunc, Action methodToCall)
+        {
+
+            if (inputFunc is MethodCallExpression)
+            {
+                var methodCallInfo = AddMethod((MethodCallExpression)inputFunc);
+                var parameterValues = GetMethodParameters((MethodCallExpression)inputFunc);
+                methodCallInfo.AddCalls(methodToCall, parameterValues);
+            }
+            else if (inputFunc is MemberExpression)
+            {
+                var memberInfo = AddMember((MemberExpression)inputFunc);
+                memberInfo.AddCalls(methodToCall, null);
+            }
+            else
+                throw new MirrorArrangeException("Unsupported expression type " + inputFunc.GetType().Name);
+        }
+
 
         private MockedMemberInfo GetMethodCallInfo(System.Reflection.MethodInfo method)
         {
@@ -186,6 +206,7 @@ namespace Mirror.Framework
             return memberCallInfo;
         }
 
+
         private MockedMemberInfo GetMemberCallInfo(System.Reflection.MemberInfo member)
         {
             MockedMemberInfo memberCallInfo = null;
@@ -197,6 +218,7 @@ namespace Mirror.Framework
             return memberCallInfo;
         }
 
+
         private MockedMemberInfo AddMethod(MethodCallExpression methodCallExpression)
         {
             var method = methodCallExpression.Method;
@@ -207,21 +229,13 @@ namespace Mirror.Framework
         }
 
 
-
         private MockedMemberInfo AddMember(MemberExpression memberExpression)
         {
             var member = memberExpression.Member;
-            //memberExpression.
+
             MockedMemberInfo methodCallInfo = GetMemberCallInfo(member);
             _proxy.MemberCallInfoCollection[member] = methodCallInfo;
             return methodCallInfo;
-
-            //var property = memberExpression.Member;
-            //var value = GetParameterValues(new Expression[]{memberExpression})[0];
-
-            //PropertyCallInfo propertyCallInfo = GetPropertyCallInfo(property);
-            //_proxy.PropertyInfoCollection[property] = propertyCallInfo;
-            //return new MemberArrangeResult<TMirroredType>() { };
         }
 
 
@@ -254,5 +268,7 @@ namespace Mirror.Framework
 
             return parameterArray;
         }
+
+        #endregion
     }
 }

@@ -1,11 +1,7 @@
 ﻿// Example tests that show how to use Mirror
 
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using NUnit.Framework;
 using Mirror.Framework;
+using NUnit.Framework;
 
 namespace Mirror.Tests
 {
