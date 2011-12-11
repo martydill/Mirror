@@ -70,10 +70,39 @@ namespace Mirror.Tests
             Assert.AreEqual(2, mock.Count(s => s.DoStuff(null, "a")));
         }
 
+
         [Test]
         public void TestCountReturnsCorrectValuesForAnyParameterMethod()
         {
-            // TODO
+            var mock = new Mirror<ITest>();
+
+            mock.It.DoStuff(1);
+            mock.It.DoStuff(2);
+            mock.It.DoStuff(1);
+
+            Assert.AreEqual(3, mock.Count(s => s.DoStuff(Any<int>.Value)));
+            Assert.AreEqual(2, mock.Count(s => s.DoStuff(1)));
+        }
+
+        
+        [Test]
+        public void TestCountReturnsCorrectValuesForMultipleAnyParameterMethod()
+        {
+            var mock = new Mirror<ITest>();
+            var test = new test();
+
+            mock.It.DoStuff(null, "a");
+            mock.It.DoStuff(null, "a");
+            mock.It.DoStuff(null, "b");
+            mock.It.DoStuff(new test(), "c");
+            mock.It.DoStuff(test, "c");
+            mock.It.DoStuff(test, "a");
+
+            Assert.AreEqual(6, mock.Count(s => s.DoStuff(Any<test>.Value, Any<string>.Value)));
+            Assert.AreEqual(3, mock.Count(s => s.DoStuff(null, Any<string>.Value)));
+            Assert.AreEqual(2, mock.Count(s => s.DoStuff(Any<test>.Value, "c")));
+            Assert.AreEqual(2, mock.Count(s => s.DoStuff(test, Any<string>.Value)));
+
         }
     }
 }

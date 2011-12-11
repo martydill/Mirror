@@ -142,7 +142,9 @@ namespace Mirror.Framework
                     object arrangedMethodArgument = GetValueForParameterValue(arrangedParameterValues[i]);
                     object actualMethodArgument = GetValueForParameterValue(methodArguments[i]);
 
-                    if(!IsAnyParameter(arrangedParameterValues[i]))
+                    // We have to check both the arranged parameter values and the actual method arguments 
+                    // for Any() to handle the case where we are checking for Count(...)
+                    if(!IsAnyParameter(arrangedParameterValues[i]) && !IsAnyParameter(methodArguments[i]))
                     {
                         // Then, check if it matches the given parameters
                         if (!Object.Equals(arrangedMethodArgument, actualMethodArgument))
@@ -190,5 +192,6 @@ namespace Mirror.Framework
             }
             return value;
         }
+
     }
 }
