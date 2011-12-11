@@ -31,10 +31,20 @@ namespace Mirror.Tests
 
 
         [Test]
-        public void TestCallNonArrangedMethodDoesNothing()
+        public void TestCallNonArrangedMethodDoesNothingReturnsDefaultValueForReferenceType()
         {
             var test = new Mirror<ITest>();
-            test.It.DoStuff();
+            string s = test.It.GetString(1, "a");
+            Assert.IsNull(s);
+        }
+
+
+        [Test]
+        public void TestCallNonArrangedMethodDoesNothingReturnsDefaultValueForValueType()
+        {
+            var test = new Mirror<ITest>();
+            int result = test.It.GetInt(1);
+            Assert.AreEqual(0, result);
         }
 
 

@@ -98,11 +98,14 @@ namespace Mirror.Framework
         /// </summary>
         private static object CalculateDefaultReturnValue(MethodCallMessageWrapper methodCallMessage)
         {
-            var returnType = methodCallMessage.MethodSignature as Type[];
-
             Object returnValue = null;
-            if(returnType.Length > 0)
-                returnValue = Activator.CreateInstance(returnType[0]);
+            var methodInfo = methodCallMessage.MethodBase as MethodInfo;
+            if (methodInfo != null)
+            {
+                var returnType = methodInfo.ReturnType;
+                if (returnType.IsValueType && returnType != typeof(void))
+                    returnValue = Activator.CreateInstance(returnType);
+            }
 
             return returnValue;
         }

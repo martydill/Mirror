@@ -43,6 +43,7 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="ExampleTests.cs" />
     <Compile Include="MirrorCountTest.cs" />
     <Compile Include="MirrorThrowsTest.cs" />
     <Compile Include="MirrorCallsTest.cs" />
