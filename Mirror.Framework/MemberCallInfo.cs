@@ -11,7 +11,7 @@ namespace Mirror.Framework
     /// <summary>
     /// Stores the mock info for a given method/property
     /// </summary>
-    public class MemberCallInfo
+    public class MockedMemberInfo
     {
         internal class ParameterInfo
         {
@@ -25,22 +25,82 @@ namespace Mirror.Framework
         }
 
         private readonly List<CallCountInstance> _methodCallCounts = new List<CallCountInstance>();
+        
         private readonly List<ParameterInfo> _parameterValues = new List<ParameterInfo>();
 
+
+        /// <summary>
+        /// Adds a return value to this mocked member
+        /// </summary>
+        /// <param name="returnValue">The value to return</param>
+        /// <param name="parameterValues">The parameters that the member is being mocked with</param>
         internal void AddReturns(object returnValue, object[] parameterValues)
         {
             _parameterValues.Add(new ParameterInfo() { ReturnValue = returnValue, ParameterValues = parameterValues });
         }
 
-        internal object CalculateReturnValue(object[] methodArguments)
+
+        /// <summary>
+        /// Adds a 'calls' method execution to this mocked member
+        /// </summary>
+        /// <param name="methodToCall">The method that will be called</param>
+        /// <param name="parameterValues">The parameters that the member is being mocked with</param>
+        internal void AddCalls(Action methodToCall, object[] parameterValues)
+        {
+            _parameterValues.Add(new ParameterInfo() { MethodToCall = methodToCall, ParameterValues = parameterValues });
+        }
+
+
+
+        /// <summary>
+        /// Adds throwing of an exception to this mocked member
+        /// </summary>
+        /// <param name="methodToCall">The exception that will be thrown</param>
+        /// <param name="parameterValues">The parameters that the member is being mocked with</param>
+        internal void AddThrows(Exception exception, object[] ParameterValues)
+        {
+            _parameterValues.Add(new ParameterInfo() { ExceptionToThrow = exception, ParameterValues = ParameterValues });
+        }
+
+
+        /// <summary>
+        /// Increments the method call counter for the given set of parametesr
+        /// </summary>
+        internal void LogMethodCall(object[] parameters)
+        {
+            _methodCallCounts.Add(new CallCountInstance() { Parameters = parameters });
+        }
+
+
+        /// <summary>
+        /// Returns the number of times the method was called with the given set of parameters
+        /// </summary>
+        internal int CallCount(IEnumerable<Expression> parameters)
+        {
+            int callCount = 0;
+
+            foreach (var methodCallCountInstance in _methodCallCounts)
+            {
+                bool isMatchingMethodCall = DoParametersMatch(parameters.ToArray(), methodCallCountInstance.Parameters);
+
+                if (isMatchingMethodCall)
+                    ++callCount;
+            }
+
+            return callCount;
+        }
+       
+        
+        /// <summary>
+        /// Calculates and returns the appropriate return value for this member, based on the passed-in arguments
+        /// Also throws exceptions or calls methods, as appropriate
+        /// </summary>
+        internal object ExecuteMockedMember(object[] methodArguments)
         {
             object returnValue = null;
 
-
             foreach (var parameterInfo in _parameterValues)
             {
-              
-
                 if (parameterInfo.ParameterValues != null && methodArguments.Count() != parameterInfo.ParameterValues.Count())
                     continue;
 
@@ -65,6 +125,10 @@ namespace Mirror.Framework
             return returnValue;
         }
 
+
+        /// <summary>
+        /// Returns whether or not the given collection of arguments matches the given collection of arranged parameter values
+        /// </summary>
         private static bool DoParametersMatch(object[] methodArguments, object[] arrangedParameterValues)
         {
             bool doParametersMatch = true;
@@ -73,6 +137,8 @@ namespace Mirror.Framework
             {
                 for (int i = 0; i < methodArguments.Count(); ++i)
                 {
+                    // Figure out the value for each of the parameters
+                    // (Since they could be lambdas/method calls/etc.)
                     object arrangedMethodArgument = GetValueForParameterValue(arrangedParameterValues[i]);
                     object actualMethodArgument = GetValueForParameterValue(methodArguments[i]);
 
@@ -90,8 +156,9 @@ namespace Mirror.Framework
             return doParametersMatch;
         }
 
+
         /// <summary>
-        /// Returns whether or not the given arranged parameter is an Any of T "/>
+        /// Returns whether or not the given arranged parameter is an 'Any of T' object, and thus should match everything of that type 
         /// </summary>
         private static bool IsAnyParameter(object arrangedParameterValue)
         {
@@ -107,63 +174,21 @@ namespace Mirror.Framework
             return isAnyParameter;
         }
 
-        private static object GetValueForParameterValue(object result)
+
+        /// <summary>
+        /// Returns an actual value for the given parameter
+        /// Executes it if it is an expression to get the result
+        /// </summary>
+        private static object GetValueForParameterValue(object value)
         {
             // If the result is an expression, evaluate it first
-            if (result is Expression)
+            if (value is Expression)
             {
-                var lambda = Expression.Lambda(result as Expression);
+                var lambda = Expression.Lambda(value as Expression);
                 var func = lambda.Compile();
-                result = func.DynamicInvoke();
+                value = func.DynamicInvoke();
             }
-            return result;
+            return value;
         }
-
-        internal void AddCalls(Action methodToCall, object[] parameterValues)
-        {
-            _parameterValues.Add(new ParameterInfo() { MethodToCall = methodToCall, ParameterValues = parameterValues });
-        }
-
-        internal void AddThrows(Exception exception, object[] ParameterValues)
-        {
-            _parameterValues.Add(new ParameterInfo() { ExceptionToThrow = exception, ParameterValues = ParameterValues });
-        }
-
-        /// <summary>
-        /// Increments the method call counter for the given set of parametesr
-        /// </summary>
-        internal void LogMethodCall(object[] parameters)
-        {
-            _methodCallCounts.Add(new CallCountInstance() { Parameters = parameters });
-        }
-
-        /// <summary>
-        /// Returns the number of times the method was called with the given set of parameters
-        /// </summary>
-        internal int CallCount(IEnumerable<Expression> parameters)
-        {
-            int callCount = 0;
-
-            foreach (var methodCallCountInstance in _methodCallCounts)
-            {
-                bool isMatchingMethodCall = DoParametersMatch(parameters.ToArray(), methodCallCountInstance.Parameters);
-
-                if (isMatchingMethodCall)
-                    ++callCount;
-            }
-
-            return callCount;
-        }
-    }
-
-    /// <summary>
-    /// Keeps track of individual instances of method/property calls with the specified parameters
-    /// </summary>
-    internal class CallCountInstance
-    {
-        /// <summary>
-        /// The list of parameters that the method was called with
-        /// </summary>
-        public object[] Parameters { get; set; }
     }
 }

@@ -62,6 +62,7 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="Any.cs" />
+    <Compile Include="CallCountInstance.cs" />
     <Compile Include="MirrorArrangeException.cs" />
     <Compile Include="MemberCallInfo.cs" />
     <Compile Include="Mirror.cs" />

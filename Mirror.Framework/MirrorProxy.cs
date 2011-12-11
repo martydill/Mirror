@@ -15,7 +15,7 @@ namespace Mirror.Framework
     /// </summary>
     internal sealed class MirrorProxy : RealProxy
     {
-        private readonly Dictionary<object, MemberCallInfo> _memberCallInfoCollection = new Dictionary<object, MemberCallInfo>();
+        private readonly Dictionary<object, MockedMemberInfo> _memberCallInfoCollection = new Dictionary<object, MockedMemberInfo>();
 
         public MirrorProxy(Type classToProxy)
             : base(classToProxy)
@@ -26,7 +26,7 @@ namespace Mirror.Framework
         /// <summary>
         /// The collection of method/property mock info for this proxy
         /// </summary>
-        public Dictionary<object, MemberCallInfo> MemberCallInfoCollection
+        public Dictionary<object, MockedMemberInfo> MemberCallInfoCollection
         {
             get
             {
@@ -46,7 +46,7 @@ namespace Mirror.Framework
                 var methodCallMessageWrapper = new MethodCallMessageWrapper(methodCallMessage);
 
                 object returnValue = null;
-                MemberCallInfo methodCallInfo = null;
+                MockedMemberInfo methodCallInfo = null;
 
                 // First, try to find the PropertyInfo for this method (because it might be a backing
                 // method for a property). If that fails, just use the method from the message.
@@ -57,13 +57,13 @@ namespace Mirror.Framework
                 if (MemberCallInfoCollection.TryGetValue(key, out methodCallInfo))
                 {
                     // Method call has been arranged. Figure out the desired return value.
-                    returnValue = methodCallInfo.CalculateReturnValue(methodCallMessage.InArgs);
+                    returnValue = methodCallInfo.ExecuteMockedMember(methodCallMessage.InArgs);
                 }
                 else
                 { 
                     // Method call has not been arranged. Add an arrangement for it (for logging purposes)
                     // and return a default value
-                    methodCallInfo = new MemberCallInfo();
+                    methodCallInfo = new MockedMemberInfo();
                     MemberCallInfoCollection.Add(methodCallMessageWrapper.MethodBase, methodCallInfo);
                     returnValue = CalculateDefaultReturnValue(methodCallMessageWrapper);
                 }
@@ -77,8 +77,10 @@ namespace Mirror.Framework
             return null;
         }
 
+
         /// <summary>
         /// From http://stackoverflow.com/a/7819571/184630
+        /// Returns a MethodInfo from the given PropertyInfo
         /// </summary>
         private static PropertyInfo GetPropertyInfoFromMethodInfo(MethodInfo method)
         {
@@ -92,7 +94,7 @@ namespace Mirror.Framework
 
 
         /// <summary>
-        /// Calculates and returns the default return value for the given message
+        /// Calculates and returns the default return value for the given message based on its type
         /// </summary>
         private static object CalculateDefaultReturnValue(MethodCallMessageWrapper methodCallMessage)
         {

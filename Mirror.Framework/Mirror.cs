@@ -49,7 +49,7 @@ namespace Mirror.Framework
             var method = methodCallExpression.Method;
             var parameters = methodCallExpression.Arguments;
 
-            MemberCallInfo methodCallInfo = GetMethodCallInfo(method);
+            MockedMemberInfo methodCallInfo = GetMethodCallInfo(method);
             return methodCallInfo.CallCount(parameters);
         }
 
@@ -175,44 +175,44 @@ namespace Mirror.Framework
                 throw new MirrorArrangeException("Unsupported expression type " + inputFunc.Body.GetType().Name);
         }
 
-        private MemberCallInfo GetMethodCallInfo(System.Reflection.MethodInfo method)
+        private MockedMemberInfo GetMethodCallInfo(System.Reflection.MethodInfo method)
         {
-            MemberCallInfo memberCallInfo = null;
+            MockedMemberInfo memberCallInfo = null;
             if (!_proxy.MemberCallInfoCollection.TryGetValue(method, out memberCallInfo))
             {
-                memberCallInfo = new MemberCallInfo();
+                memberCallInfo = new MockedMemberInfo();
                 _proxy.MemberCallInfoCollection.Add(method, memberCallInfo);
             }
             return memberCallInfo;
         }
 
-        private MemberCallInfo GetMemberCallInfo(System.Reflection.MemberInfo member)
+        private MockedMemberInfo GetMemberCallInfo(System.Reflection.MemberInfo member)
         {
-            MemberCallInfo memberCallInfo = null;
+            MockedMemberInfo memberCallInfo = null;
             if (!_proxy.MemberCallInfoCollection.TryGetValue(member, out memberCallInfo))
             {
-                memberCallInfo = new MemberCallInfo();
+                memberCallInfo = new MockedMemberInfo();
                 _proxy.MemberCallInfoCollection.Add(member, memberCallInfo);
             }
             return memberCallInfo;
         }
 
-        private MemberCallInfo AddMethod(MethodCallExpression methodCallExpression)
+        private MockedMemberInfo AddMethod(MethodCallExpression methodCallExpression)
         {
             var method = methodCallExpression.Method;
 
-            MemberCallInfo methodCallInfo = GetMethodCallInfo(method);
+            MockedMemberInfo methodCallInfo = GetMethodCallInfo(method);
             _proxy.MemberCallInfoCollection[method] = methodCallInfo;
             return methodCallInfo;
         }
 
 
 
-        private MemberCallInfo AddMember(MemberExpression memberExpression)
+        private MockedMemberInfo AddMember(MemberExpression memberExpression)
         {
             var member = memberExpression.Member;
             //memberExpression.
-            MemberCallInfo methodCallInfo = GetMemberCallInfo(member);
+            MockedMemberInfo methodCallInfo = GetMemberCallInfo(member);
             _proxy.MemberCallInfoCollection[member] = methodCallInfo;
             return methodCallInfo;
 
