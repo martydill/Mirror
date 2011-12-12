@@ -1,1 +1,27 @@
 Mirror is a simple mocking framework for .NET, still in very early development.
+-------------------------------------------------------------------------------
+It is designed for simplicity, with a small API surface, no complicated fluent interfaces, and a compiled binary size under 15k.
+
+Here are a few examples of its usage:
+
+
+Creating a mock:
+var mockRepo = new Mirror<IAccountRepository>();
+
+Setting up a return value:
+mockRepo.Returns(r => r.GetAccount(1001), new Account());
+
+Setting up a callback:
+mockRepo.Calls(r => r.GetAccount(1001), () => DoSomethingWhenAccountIsAccessed());
+
+Setting up a thrown exception:
+mockRepo.Throws(r => r.DeleteAccount(89736), new AccountSecurityException());
+
+Allowing parameters of any value, with Any<T>.Value:
+mockRepo.Returns(r => r.GetAccount(Any<int>.Value), new Account());
+
+Determining how many times a method was called:
+Assert.AreEqual(1, mockRepo.Calls(r.GetAccount(1001));
+
+Getting a T from a Mirror<T>:
+IAccountRepository accountRepository = mockRepo.It;
